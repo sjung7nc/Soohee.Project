@@ -1,0 +1,65 @@
+---
+title: "Project I"
+author: "Soohee Jung"
+date: "6/11/2021"
+output:
+  github_document:
+    toc: TRUE
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Functions  
+
+```{r}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+
+rcdURL <- function(list,recd,type,id){
+  if (missing(recd) & missing(type) & missing(id)){
+    rcdurl <- paste0("https://records.nhl.com/site/api","/",list)
+    }  
+  else if (missing(type) & missing(id)){
+    rcdurl <- paste0("https://records.nhl.com/site/api","/", list,"-", recd)
+    }
+  else {
+    rcdurl <- paste0("https://records.nhl.com/site/api","/", list,"-", recd,"?cayenneExp=", type, "=", id)
+    }
+  return(rcdurl)
+}
+
+rcddt <- function(list,...){
+  rcdNHL <- GET(rcdURL(list,...))
+  rcdtext <- content(rcdNHL, "text")
+  rcdlist <- fromJSON(rcdtext, flatten=TRUE)
+  rcdlist <- as.data.frame(rcdlist)
+  head(return(rcdlist))
+}
+
+statURL <- function(list,id){
+  if (missing(id)){
+    staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
+  }
+  else{
+    staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
+  }
+  return(staturl)
+}
+
+statdt <- function(list,...){
+  statNHL <- GET(statURL(list,...))
+  stattext <- content(statNHL, "text")
+  statlist <- fromJSON(stattext, flatten=TRUE)
+  statlist <- as.data.frame(statlist)
+  head(return(statlist))
+}
+
+mostRecentTeamId <- rcddt("franchise")$data.mostRecentTeamId
+franchiseId <- rcddt("franchise")$data.id
+```
+
+
+
