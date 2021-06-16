@@ -111,9 +111,11 @@ knitr::kable(AvgWin)
 
 ## How skater assists and penalty time affect to winning or goals?  
 ```{r}
+library(ggplot2)
 skid3 <- wrapfnc("record","franchise", "skater-records","franchiseId",3)
 skid5 <- wrapfnc("record","franchise", "skater-records","franchiseId",5)
 skid35 <- rbind(skid3,skid5) %>% select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes)
+sk <- ggplot(skid35)
 ```
 
 ## How goalie goal against affect to winning?  
