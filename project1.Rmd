@@ -11,19 +11,22 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Functions  
+# FUNCTIONS  
+## Record API Functions  
 
 ```{r message=FALSE}
 library(httr)
 library(jsonlite)
 library(tidyverse)
 
+# to get the franchise ids and the team names
 frurl <- GET("https://records.nhl.com/site/api/franchise")
-frtext <- content(frurl, "text")
+frtext <- content(frurl, "text", encoding = "UTF-8")
 frlist <- fromJSON(frtext, flatten=TRUE)
 frlist <- as.data.frame(frlist)
-frtbl <- tibble(frlist$data.id, frlist$data.teamCommonName)
+frtbl <- tibble(frlist$data.id, frlist$data.fullName)
 
+# record API function
 rcdURL <- function(list,recd,type,id){
   if (missing(recd) & missing(type) & missing(id)){
     rcdurl <- paste0("https://records.nhl.com/site/api/",list)
@@ -45,12 +48,15 @@ rcdURL <- function(list,recd,type,id){
 
 rcddt <- function(list,...){
   rcdNHL <- GET(rcdURL(list,...))
-  rcdtext <- content(rcdNHL, "text")
+  rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
   rcdlist <- fromJSON(rcdtext, flatten=TRUE)
   rcdlist <- as.data.frame(rcdlist)
   return(rcdlist)
 }
+```
 
+## stat API function  
+```{r}
 statURL <- function(list,id){
   if (missing(id)){
     staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
@@ -69,25 +75,51 @@ statURL <- function(list,id){
 
 statdt <- function(list,...){
   statNHL <- GET(statURL(list,...))
-  stattext <- content(statNHL, "text")
+  stattext <- content(statNHL, "text",encoding = "UTF-8")
   statlist <- fromJSON(stattext, flatten=TRUE)
   statlist <- as.data.frame(statlist)
   return(statlist)
 }
 ```
 
+## wrapper function to call the functions above  
 ```{r}
-# to see variables of each endpoints
-str(rcddt("franchise"))
-str(rcddt("franchise","team-totals"))
-str(rcddt("franchise","season-records"))
-str(rcddt("franchise","goalie-records"))
-str(rcddt("franchise","skater-records","franchiseId",1))
-str(rcddt("franchise","detail"))
-statdt("teams",1)
-statdt("franchises",2)
+# choose record or stat and then put parameters what we want
+wrapfnc <- function(fnc,list,...){
+  if (fnc=="record"){
+    return(rcddt(list,...))
+  }
+  else if (fnc=="stat"){
+    return(statdt(list,...))
+  }
+  else cat("choose record or stat!!")
+}
 ```
 
+# FACTORS WHICH INFLUENCE TEAM WINNING  
+## Choose two franchises to compare with  
+I will compare franchise with id number 3 and 5. Let's find the factors which affect team winning!    
 ```{r}
-library(ggplot2)
+# I will compare these two Franchises how players affect the winning!
+frwins <- wrapfnc("record","franchise", "team-totals") %>%
+   filter((data.franchiseId==3 | data.franchiseId==5) & data.gameTypeId==2) %>%
+   select("Franchise ID"=data.franchiseId, "Team Name"=data.teamName, "Total Wins"=data.wins) 
+
+AvgWin <- frwins %>% group_by(`Franchise ID`) %>% mutate(AvgWin=mean(`Total Wins`)) %>% distinct(`Franchise ID`, AvgWin)
+knitr::kable(AvgWin)
+```
+
+## How skater assists and penalty time affect to winning or goals?  
+```{r}
+skid3 <- wrapfnc("record","franchise", "skater-records","franchiseId",3)
+skid5 <- wrapfnc("record","franchise", "skater-records","franchiseId",5)
+skid35 <- rbind(skid3,skid5) %>% select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes)
+```
+
+## How goalie goal against affect to winning?  
+A good goals against average will fall between 2.00 and 2.70 for NHL goaltenders. Anything between 2.70-3.00 is considered respectable, while below 2.00 is very exceptional.  
+```{r}
+goid3 <- wrapfnc("record","franchise", "goalie-records","franchiseId",3)
+goid5 <- wrapfnc("record","franchise", "goalie-records","franchiseId",5)
+goid35 <- rbind(goid3,goid5) %>% select(data.franchiseId,data.playerId,data.mostGoalsAgainstOneGame)
 ```
