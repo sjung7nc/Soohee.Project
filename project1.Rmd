@@ -13,21 +13,33 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Functions  
 
-```{r}
+```{r message=FALSE}
 library(httr)
 library(jsonlite)
 library(tidyverse)
 
+frurl <- GET("https://records.nhl.com/site/api/franchise")
+frtext <- content(frurl, "text")
+frlist <- fromJSON(frtext, flatten=TRUE)
+frlist <- as.data.frame(frlist)
+frtbl <- tibble(frlist$data.id, frlist$data.teamCommonName)
+
 rcdURL <- function(list,recd,type,id){
   if (missing(recd) & missing(type) & missing(id)){
-    rcdurl <- paste0("https://records.nhl.com/site/api","/",list)
-    }  
+    rcdurl <- paste0("https://records.nhl.com/site/api/",list)
+  }
   else if (missing(type) & missing(id)){
-    rcdurl <- paste0("https://records.nhl.com/site/api","/", list,"-", recd)
-    }
+    rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd)
+  }
   else {
-    rcdurl <- paste0("https://records.nhl.com/site/api","/", list,"-", recd,"?cayenneExp=", type, "=", id)
+    if (is.numeric(id)){
+      rcdurl <- paste0("https://records.nhl.com/site/api/franchise","-",recd,"?cayenneExp=", type, "=", id)
     }
+    else {
+      id <- filter(filter(frtbl,frtbl[2]==id)[1])
+      rcdurl <- paste0("https://records.nhl.com/site/api/franchise","-",recd,"?cayenneExp=", type, "=", id)
+    }
+  }
   return(rcdurl)
 }
 
@@ -36,7 +48,7 @@ rcddt <- function(list,...){
   rcdtext <- content(rcdNHL, "text")
   rcdlist <- fromJSON(rcdtext, flatten=TRUE)
   rcdlist <- as.data.frame(rcdlist)
-  head(return(rcdlist))
+  return(rcdlist)
 }
 
 statURL <- function(list,id){
@@ -44,7 +56,13 @@ statURL <- function(list,id){
     staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
   }
   else{
-    staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
+    if (is.numeric(id)){
+      staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
+    }
+    else {
+      id <- filter(filter(frtbl,frtbl[2]==id)[1])
+      staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
+    }
   }
   return(staturl)
 }
@@ -54,12 +72,22 @@ statdt <- function(list,...){
   stattext <- content(statNHL, "text")
   statlist <- fromJSON(stattext, flatten=TRUE)
   statlist <- as.data.frame(statlist)
-  head(return(statlist))
+  return(statlist)
 }
-
-mostRecentTeamId <- rcddt("franchise")$data.mostRecentTeamId
-franchiseId <- rcddt("franchise")$data.id
 ```
 
+```{r}
+# to see variables of each endpoints
+str(rcddt("franchise"))
+str(rcddt("franchise","team-totals"))
+str(rcddt("franchise","season-records"))
+str(rcddt("franchise","goalie-records"))
+str(rcddt("franchise","skater-records","franchiseId",1))
+str(rcddt("franchise","detail"))
+statdt("teams",1)
+statdt("franchises",2)
+```
 
-
+```{r}
+library(ggplot2)
+```
