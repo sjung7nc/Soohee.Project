@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # FUNCTIONS  
-## Record API Functions  
+## Record-API Functions  
 
 ```{r message=FALSE}
 library(httr)
@@ -55,7 +55,7 @@ rcddt <- function(list,...){
 }
 ```
 
-## stat API function  
+## Stat-API function  
 ```{r}
 statURL <- function(list,id){
   if (missing(id)){
@@ -82,7 +82,7 @@ statdt <- function(list,...){
 }
 ```
 
-## wrapper function to call the functions above  
+## Wrapper function to call the functions above  
 ```{r}
 # choose record or stat and then put parameters what we want
 wrapfnc <- function(fnc,list,...){
@@ -98,30 +98,59 @@ wrapfnc <- function(fnc,list,...){
 
 # FACTORS WHICH INFLUENCE TEAM WINNING  
 ## Choose two franchises to compare with  
-I will compare franchise with id number 3 and 5. Let's find the factors which affect team winning!    
 ```{r}
-# I will compare these two Franchises how players affect the winning!
-frwins <- wrapfnc("record","franchise", "team-totals") %>%
-   filter((data.franchiseId==3 | data.franchiseId==5) & data.gameTypeId==2) %>%
-   select("Franchise ID"=data.franchiseId, "Team Name"=data.teamName, "Total Wins"=data.wins) 
-
-AvgWin <- frwins %>% group_by(`Franchise ID`) %>% mutate(AvgWin=mean(`Total Wins`)) %>% distinct(`Franchise ID`, AvgWin)
-knitr::kable(AvgWin)
+# Look for interesting results. 
+a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2) %>% 
+  mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance) 
+a[order(a$Winchance),] %>% filter(data.gamesPlayed >2000)
 ```
+ID=1 had higher chance of win than ID=20 had. Let's find the factors which affect team winning!    
 
-## How skater assists and penalty time affect to winning or goals?  
+## How skater assists affect winning?  
 ```{r}
+# Filter datasets and create new variables
+skid1 <- wrapfnc("record","franchise", "skater-records","franchiseId",1) %>% 
+  mutate(AvgAssist=mean(data.assists), AvgPenalty=mean(data.penaltyMinutes)) %>% 
+  select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes,data.assists,AvgAssist,AvgPenalty)
+
+skid20 <- wrapfnc("record","franchise", "skater-records","franchiseId",20) %>%
+  mutate(AvgAssist=mean(data.assists), AvgPenalty=mean(data.penaltyMinutes)) %>% 
+  select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes,data.assists,AvgAssist,AvgPenalty)
+
+# Combine two datasets
+cosk <- rbind(skid1,skid20)
+cosk$data.franchiseId <- as.character(cosk$data.franchiseId)
+
 library(ggplot2)
-skid3 <- wrapfnc("record","franchise", "skater-records","franchiseId",3)
-skid5 <- wrapfnc("record","franchise", "skater-records","franchiseId",5)
-skid35 <- rbind(skid3,skid5) %>% select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes)
-sk <- ggplot(skid35)
+# Create a graph to see which franchise has more average assists
+sk <- ggplot(cosk, aes(x=data.franchiseId, y=AvgAssist))
+sk + geom_col(aes(color=data.franchiseId)) + labs(x="Franchise ID", title="< Average Assists by ID>") + 
+  theme(legend.position = "none")
+# Create a graph to see the relationship between assists and goals
+sk2 <- ggplot(cosk, aes(x=data.assists, y=data.goals))
+sk2+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
+We can see Franchise ID=1 had more average assists from the first graph. And the second graph tells us the relationship between assists and goals is linear. So, we can say **more assists leads higher chance of winning!**  
+
+## How skater penalty time affect winning?  
+```{r}
+# Create a graph to see which franchise has more average penalty minutes
+skpt <- ggplot(cosk, aes(x=data.franchiseId, y=AvgPenalty))
+skpt + geom_col(aes(color=data.franchiseId)) + 
+  labs(x="Franchise ID", title="< Average Penalty minute by ID>") + theme(legend.position = "none")
+
+# Create a graph to see the relationship between penalty minutes and goals
+skpt2 <- ggplot(cosk, aes(x=data.penaltyMinutes, y=data.goals))
+skpt2 + geom_line(aes(color=data.franchiseId)) + 
+  labs(x="Penalty Minutes", y="Goals", color="Franchise ID",title="< Penalty minute and Goals >")
+```
+What a surprising result!! I thought the penalty minutes definitely affects winning but the graphs tell us no relationship between the penalty minutes and the chance of winning. I could not believe that so searched up and found a website. [ESPN/NHL](https://www.espn.com/nhl/statistics/team/_/stat/major-penalties/league/east). Teams can be higher rank regardless of penalty minutes.  
+
 
 ## How goalie goal against affect to winning?  
 A good goals against average will fall between 2.00 and 2.70 for NHL goaltenders. Anything between 2.70-3.00 is considered respectable, while below 2.00 is very exceptional.  
 ```{r}
-goid3 <- wrapfnc("record","franchise", "goalie-records","franchiseId",3)
-goid5 <- wrapfnc("record","franchise", "goalie-records","franchiseId",5)
-goid35 <- rbind(goid3,goid5) %>% select(data.franchiseId,data.playerId,data.mostGoalsAgainstOneGame)
+#goid3 <- wrapfnc("record","franchise", "goalie-records","franchiseId",3)
+#goid5 <- wrapfnc("record","franchise", "goalie-records","franchiseId",5)
+#goid35 <- rbind(goid3,goid5) %>% select(data.franchiseId,data.playerId,data.mostGoalsAgainstOneGame)
 ```
