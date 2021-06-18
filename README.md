@@ -14,10 +14,8 @@ Soohee Jung
         with](#choose-two-franchises-to-compare-with)
     -   [How skater assists affect
         winning?](#how-skater-assists-affect-winning)
-    -   [How skater penalty time affect
-        winning?](#how-skater-penalty-time-affect-winning)
-    -   [How goalie goal against affect to
-        winning?](#how-goalie-goal-against-affect-to-winning)
+    -   [How center position skater’s penalty time affect
+        goal?](#how-center-position-skaters-penalty-time-affect-goal)
 
 # FUNCTIONS
 
@@ -88,6 +86,7 @@ statdt <- function(list,...){
   stattext <- content(statNHL, "text",encoding = "UTF-8")
   statlist <- fromJSON(stattext, flatten=TRUE)
   statlist <- as.data.frame(statlist)
+  statlist <- unnest(unnest(statlist,cols = c(teams.teamStats)),cols = c(splits))
   return(statlist)
 }
 ```
@@ -112,111 +111,111 @@ wrapfnc <- function(fnc,list,...){
 ## Choose two franchises to compare with
 
 ``` r
-# Look for interesting results. 
-a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2) %>% 
-  mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance) 
-a[order(a$Winchance),] %>% filter(data.gamesPlayed >2000)
+# Look for interesting results from 'team-total' dataset. 
+a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
+  mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
+knitr::kable(a)
 ```
 
-    ##    data.franchiseId data.gamesPlayed data.wins Winchance
-    ## 1                15             2062       758 0.3676043
-    ## 2                20             3945      1649 0.4179975
-    ## 3                14             4172      1754 0.4204219
-    ## 4                33             2109       889 0.4215268
-    ## 5                11             6560      2812 0.4286585
-    ## 6                10             6560      2883 0.4394817
-    ## 7                 5             6516      2873 0.4409147
-    ## 8                30             2195       971 0.4423690
-    ## 9                22             3788      1688 0.4456177
-    ## 10               31             2194       985 0.4489517
-    ## 11               25             3235      1469 0.4540958
-    ## 12               17             4171      1903 0.4562455
-    ## 13               19             3945      1805 0.4575412
-    ## 14               12             6293      2891 0.4593993
-    ## 15               18             4173      1929 0.4622574
-    ## 16               23             2993      1394 0.4657534
-    ## 17               24             3633      1700 0.4679328
-    ## 18               32             2111       990 0.4689721
-    ## 19               29             2274      1070 0.4705365
-    ## 20               21             3154      1497 0.4746354
-    ## 21                6             6626      3241 0.4891337
-    ## 22               16             4171      2079 0.4984416
-    ## 23                1             6787      3473 0.5117136
-    ## 24               15             2109      1084 0.5139877
-
-ID=1 had higher chance of win than ID=20 had. Let’s find the factors
-which affect team winning!
+|    data.franchiseId |    data.gamesPlayed |    data.wins |                                     Winchance |
+|--------------------:|--------------------:|-------------:|----------------------------------------------:|
+|                  23 |                2993 |         1394 |                                     0.4657534 |
+|                  22 |                3788 |         1688 |                                     0.4456177 |
+|                  10 |                6560 |         2883 |                                     0.4394817 |
+|                  16 |                4171 |         2079 |                                     0.4984416 |
+|                  17 |                4171 |         1903 |                                     0.4562455 |
+|                   6 |                6626 |         3241 |                                     0.4891337 |
+|                  19 |                3945 |         1805 |                                     0.4575412 |
+|                   1 |                6787 |         3473 |                                     0.5117136 |
+|                  30 |                2195 |          971 |                                     0.4423690 |
+|                   5 |                6516 |         2873 |                                     0.4409147 |
+|                  33 |                2109 |          889 |                                     0.4215268 |
+|                  31 |                2194 |          985 |                                     0.4489517 |
+|                  24 |                3633 |         1700 |                                     0.4679328 |
+|                  11 |                6560 |         2812 |                                     0.4286585 |
+|                  12 |                6293 |         2891 |                                     0.4593993 |
+|                  18 |                4173 |         1929 |                                     0.4622574 |
+|                  21 |                3154 |         1497 |                                     0.4746354 |
+|                  25 |                3235 |         1469 |                                     0.4540958 |
+|                  20 |                3945 |         1649 |                                     0.4179975 |
+|                  32 |                2111 |          990 |                                     0.4689721 |
+|                  15 |                2109 |         1084 |                                     0.5139877 |
+|                  14 |                4172 |         1754 |                                     0.4204219 |
+|                  29 |                2274 |         1070 |                                     0.4705365 |
+|                  15 |                2062 |          758 |                                     0.3676043 |
+| ID=1 had higher cha | nce of win than ID= | 20 had. Let’ | s find the factors which affect team winning! |
 
 ## How skater assists affect winning?
 
 ``` r
 # Filter datasets and create new variables
-skid1 <- wrapfnc("record","franchise", "skater-records","franchiseId",1) %>% 
-  mutate(AvgAssist=mean(data.assists), AvgPenalty=mean(data.penaltyMinutes)) %>% 
-  select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes,data.assists,AvgAssist,AvgPenalty)
-
-skid20 <- wrapfnc("record","franchise", "skater-records","franchiseId",20) %>%
-  mutate(AvgAssist=mean(data.assists), AvgPenalty=mean(data.penaltyMinutes)) %>% 
-  select(data.franchiseId,data.playerId,data.assists,data.goals,data.penaltyMinutes,data.assists,AvgAssist,AvgPenalty)
+skid1 <- wrapfnc("record","franchise", "skater-records","franchiseId",1)
+skid20 <- wrapfnc("record","franchise", "skater-records","franchiseId",20)
 
 # Combine two datasets
 cosk <- rbind(skid1,skid20)
 cosk$data.franchiseId <- as.character(cosk$data.franchiseId)
 
+# Summarise skaters assists records
+avgassi <- c(ID.1=mean(skid1$data.assists),ID.20=mean(skid20$data.assists))
+knitr::kable(avgassi,col.names = "Avg Assists")
+```
+
+|          |                                               Avg Assists |
+|----------|----------------------------------------------------------:|
+| ID.1     |                                                  41.49625 |
+| ID.20    |                                                  34.80696 |
+| We can s | ee Franchise ID=1 had more average assists from the data. |
+
+``` r
 library(ggplot2)
-# Create a graph to see which franchise has more average assists
-sk <- ggplot(cosk, aes(x=data.franchiseId, y=AvgAssist))
-sk + geom_col(aes(color=data.franchiseId)) + labs(x="Franchise ID", title="< Average Assists by ID>") + 
-  theme(legend.position = "none")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
-
-``` r
 # Create a graph to see the relationship between assists and goals
-sk2 <- ggplot(cosk, aes(x=data.assists, y=data.goals))
-sk2+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
+sk <- ggplot(cosk, aes(x=data.assists, y=data.goals))
+sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-69-2.png)<!-- --> We can see
-Franchise ID=1 had more average assists from the first graph. And the
-second graph tells us the relationship between assists and goals is
-linear. So, we can say **more assists leads higher chance of winning!**
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-## How skater penalty time affect winning?
+The franchise ID=1 had more average assists and higher winning chance
+than ID=20 did. This graph also tells us the relationship between
+assists and goals is linear. So, we can say **more assists leads higher
+chance of winning!**
+
+## How center position skater’s penalty time affect goal?
 
 ``` r
-# Create a graph to see which franchise has more average penalty minutes
-skpt <- ggplot(cosk, aes(x=data.franchiseId, y=AvgPenalty))
-skpt + geom_col(aes(color=data.franchiseId)) + 
-  labs(x="Franchise ID", title="< Average Penalty minute by ID>") + theme(legend.position = "none")
+# Summarise center position skater's penalty minutes records
+center <- cosk %>% filter(data.positionCode== "C")
+centerpt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
+centerpt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
+  labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
+    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- --> The skaters
+who are in a center position scored more goals as they had more penalty
+minutes. What?? Interesting!
 
 ``` r
-# Create a graph to see the relationship between penalty minutes and goals
-skpt2 <- ggplot(cosk, aes(x=data.penaltyMinutes, y=data.goals))
-skpt2 + geom_line(aes(color=data.franchiseId)) + 
-  labs(x="Penalty Minutes", y="Goals", color="Franchise ID",title="< Penalty minute and Goals >")
+ttotal <- wrapfnc("record","franchise","team-totals")
+w <- ggplot(ttotal,aes(data.penaltyMinutes,data.wins))
+g <- ggplot(ttotal,aes(data.penaltyMinutes,data.goalsFor))
+g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-70-2.png)<!-- --> What a
-surprising result!! I thought the penalty minutes definitely affects
-winning but the graphs tell us no relationship between the penalty
-minutes and the chance of winning. I could not believe that so searched
-up and found a website.
-[ESPN/NHL](https://www.espn.com/nhl/statistics/team/_/stat/major-penalties/league/east).
-Teams can be higher rank regardless of penalty minutes.
+    ## Smoothing formula not specified. Using: y ~ x
 
-## How goalie goal against affect to winning?
-
-A good goals against average will fall between 2.00 and 2.70 for NHL
-goaltenders. Anything between 2.70-3.00 is considered respectable, while
-below 2.00 is very exceptional.
+![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
-#goid3 <- wrapfnc("record","franchise", "goalie-records","franchiseId",3)
-#goid5 <- wrapfnc("record","franchise", "goalie-records","franchiseId",5)
-#goid35 <- rbind(goid3,goid5) %>% select(data.franchiseId,data.playerId,data.mostGoalsAgainstOneGame)
+w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
 ```
+
+    ## Smoothing formula not specified. Using: y ~ x
+
+![](README_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+
+What a surprising result!! I thought the penalty minutes would affects
+goals and winnings in negative ways, but the graphs tell us totally
+opposite story.

@@ -78,6 +78,7 @@ statdt <- function(list,...){
   stattext <- content(statNHL, "text",encoding = "UTF-8")
   statlist <- fromJSON(stattext, flatten=TRUE)
   statlist <- as.data.frame(statlist)
+  statlist <- unnest(unnest(statlist,cols = c(teams.teamStats)),cols = c(splits))
   return(statlist)
 }
 ```
@@ -100,10 +101,9 @@ wrapfnc <- function(fnc,list,...){
 ## Choose two franchises to compare with  
 ```{r}
 # Look for interesting results from 'team-total' dataset. 
-library(DT)
 a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
   mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
-datatable(a)
+knitr::kable(a)
 ```
 ID=1 had higher chance of win than ID=20 had. Let's find the factors which affect team winning!    
 
