@@ -9,7 +9,7 @@ Soohee Jung
     -   [Stat-API function](#stat-api-function)
     -   [Wrapper function to call the functions
         above](#wrapper-function-to-call-the-functions-above)
--   [Preview of Data](#preview-of-data)
+-   [Contingency Tables](#contingency-tables)
     -   [Franchise Records](#franchise-records)
     -   [Franchise-team-totals Records](#franchise-team-totals-records)
     -   [franchise-season-records by
@@ -50,12 +50,13 @@ library(ggplot2)
 ## Record-API Functions
 
 ``` r
-# to get the franchise ids and the team names
+# to mapping Franchise ids vs Full names vs Most recent team ID
 frurl <- GET("https://records.nhl.com/site/api/franchise")
 frtext <- content(frurl, "text", encoding = "UTF-8")
 frlist <- fromJSON(frtext, flatten=TRUE)
 frlist <- as.data.frame(frlist)
 frtbl <- tibble(frlist$data.id, frlist$data.fullName, frlist$data.mostRecentTeamId)
+# print to see what it looks like
 head(frtbl)
 ```
 
@@ -149,35 +150,29 @@ wrapfnc <- function(fnc,list,...){
 }
 ```
 
-# Preview of Data
+# Contingency Tables
 
 ## Franchise Records
 
 ``` r
-head(wrapfnc("record","franchise"))
+as.tbl(wrapfnc("record","franchise"))
 ```
 
-    ##   data.id data.firstSeasonId       data.fullName data.lastSeasonId
-    ## 1       1           19171918  Montréal Canadiens                NA
-    ## 2       2           19171918  Montreal Wanderers          19171918
-    ## 3       3           19171918    St. Louis Eagles          19341935
-    ## 4       4           19191920     Hamilton Tigers          19241925
-    ## 5       5           19171918 Toronto Maple Leafs                NA
-    ## 6       6           19241925       Boston Bruins                NA
-    ##   data.mostRecentTeamId data.teamAbbrev data.teamCommonName
-    ## 1                     8             MTL           Canadiens
-    ## 2                    41             MWN           Wanderers
-    ## 3                    45             SLE              Eagles
-    ## 4                    37             HAM              Tigers
-    ## 5                    10             TOR         Maple Leafs
-    ## 6                     6             BOS              Bruins
-    ##   data.teamPlaceName total
-    ## 1           Montréal    39
-    ## 2           Montreal    39
-    ## 3          St. Louis    39
-    ## 4           Hamilton    39
-    ## 5            Toronto    39
-    ## 6             Boston    39
+    ## # A tibble: 39 x 9
+    ##    data.id data.firstSeaso~ data.fullName data.lastSeason~ data.mostRecent~
+    ##      <int>            <int> <chr>                    <int>            <int>
+    ##  1       1         19171918 Montréal Can~               NA                8
+    ##  2       2         19171918 Montreal Wan~         19171918               41
+    ##  3       3         19171918 St. Louis Ea~         19341935               45
+    ##  4       4         19191920 Hamilton Tig~         19241925               37
+    ##  5       5         19171918 Toronto Mapl~               NA               10
+    ##  6       6         19241925 Boston Bruins               NA                6
+    ##  7       7         19241925 Montreal Mar~         19371938               43
+    ##  8       8         19251926 Brooklyn Ame~         19411942               51
+    ##  9       9         19251926 Philadelphia~         19301931               39
+    ## 10      10         19261927 New York Ran~               NA                3
+    ## # ... with 29 more rows, and 4 more variables: data.teamAbbrev <chr>,
+    ## #   data.teamCommonName <chr>, data.teamPlaceName <chr>, total <int>
 
 ## Franchise-team-totals Records
 
@@ -1239,7 +1234,7 @@ p <- ggplot(skr,aes(x=data.positionCode,y=data.goals,fill=data.positionCode))
 p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -1251,7 +1246,7 @@ a <- ggplot(skr,aes(x=data.positionCode, y=data.assists, fill=data.positionCode)
 a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="< Assists by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 Center players assisted most and then Defenders did. I guessed wingers
 assisted most but the data tells different story. Interesting!!
@@ -1312,7 +1307,7 @@ sk <- ggplot(cosk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 The franchise ID=1 had more average assists and higher winning chance
 than ID=20 did. This graph also tells us the relationship between
@@ -1331,7 +1326,7 @@ centerpt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 The skaters who are in a center position scored more goals as they had
 more penalty minutes. What?? Interesting!
@@ -1345,7 +1340,7 @@ g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes 
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
@@ -1353,7 +1348,7 @@ w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes a
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-66-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -2191,7 +2186,7 @@ r <- ggplot(hwratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
 Playing at Home really an advantage!!

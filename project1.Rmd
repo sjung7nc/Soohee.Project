@@ -23,12 +23,13 @@ library(ggplot2)
 ## Record-API Functions  
 
 ```{r message=FALSE}
-# to get the franchise ids and the team names
+# to mapping Franchise ids vs Full names vs Most recent team ID
 frurl <- GET("https://records.nhl.com/site/api/franchise")
 frtext <- content(frurl, "text", encoding = "UTF-8")
 frlist <- fromJSON(frtext, flatten=TRUE)
 frlist <- as.data.frame(frlist)
 frtbl <- tibble(frlist$data.id, frlist$data.fullName, frlist$data.mostRecentTeamId)
+# print to see what it looks like
 head(frtbl)
 
 # record API function
@@ -108,10 +109,10 @@ wrapfnc <- function(fnc,list,...){
 }
 ```
 
-# Preview of Data  
+# Contingency Tables  
 ## Franchise Records  
 ```{r}
-head(wrapfnc("record","franchise"))
+as.tbl(wrapfnc("record","franchise"))
 ```
 
 ## Franchise-team-totals Records  
