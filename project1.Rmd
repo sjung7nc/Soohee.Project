@@ -18,6 +18,7 @@ library(httr)
 library(jsonlite)
 library(tidyverse)
 library(ggplot2)
+library(xml2)
 ```
 
 ## Record-API Functions  
@@ -58,11 +59,35 @@ rcdURL <- function(list,recd,type,id){
   return(rcdurl)
 }
 
-rcddt <- function(list,...){
-  rcdNHL <- GET(rcdURL(list,...))
-  rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-  rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-  rcdlist <- as.data.frame(rcdlist)
+rcddt <- function(list,recd,...){
+  if (missing(recd)){
+    rcdNHL <- GET(rcdURL(list))
+    rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
+    rcdlist <- fromJSON(rcdtext, flatten=TRUE)
+    rcdlist <- as.data.frame(rcdlist)
+  }
+  else {
+    if (recd=="detail"){
+      rcdNHL <- GET(rcdURL(list,recd,...))
+      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
+      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
+      rcdlist <- as.data.frame(rcdlist)
+      ca<-read_html(rcdlist$data.captainHistory)        
+      rcdlist$data.captainHistory<- xml_text(ca)
+      co<-read_html(rcdlist$data.coachingHistory)        
+      rcdlist$data.coachingHistory<- xml_text(co)
+      ge<-read_html(rcdlist$data.generalManagerHistory)        
+      rcdlist$data.generalManagerHistory<- xml_text(ge)
+      re<-read_html(rcdlist$data.retiredNumbersSummary)        
+      rcdlist$data.retiredNumbersSummary<- xml_text(re)
+    }
+    else {
+      rcdNHL <- GET(rcdURL(list,recd,...))
+      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
+      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
+      rcdlist <- as.data.frame(rcdlist)
+    }
+  }
   return(rcdlist)
 }
 ```
@@ -117,49 +142,49 @@ as.tbl(wrapfnc("record","franchise"))
 
 ## Franchise-team-totals Records  
 ```{r}
-head(wrapfnc("record","franchise","team-totals"))
+as.tbl(wrapfnc("record","franchise","team-totals"))
 ```
 
 ## franchise-season-records by franchiseId=ID  
 ```{r}
 # I choose ID=10
-head(wrapfnc("record","franchise","season-records","franchiseId",10))
+as.tbl(wrapfnc("record","franchise","season-records","franchiseId",10))
 # I choose Franchise full name="New Jersey Devils"
-head(wrapfnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+as.tbl(wrapfnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
 ```
 
 ## franchise-goalie-records by franchiseId=ID  
 ```{r}
 # I choose ID=20
-head(wrapfnc("record","franchise","goalie-records","franchiseId",20))
+as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId",20))
 # I choose Franchise full name="Philadelphia Flyers"
-head(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
 ```
 
 ## franchise-skater-records by franchiseId=ID  
 ```{r}
 # I choose ID=30
-head(wrapfnc("record","franchise","skater-records","franchiseId",30))
+as.tbl(wrapfnc("record","franchise","skater-records","franchiseId",30))
 # I choose Franchise full name="New York Rangers"
-head(wrapfnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+as.tbl(wrapfnc("record","franchise","skater-records","franchiseId","New York Rangers"))
 ```
 
 ## franchise-detail records by mostRecentTeamId=ID  
 ```{r}
 # I choose ID=8
-head(wrapfnc("record","franchise","detail","mostRecentTeamId",8))
+as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId",8))
 # I choose Franchise full name="New York Islanders"
-head(wrapfnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
 ```
 
 ## Team Stat modifier  
 ```{r}
 # I choose all ID
-head(wrapfnc("stat","teams"))
+as.tbl(wrapfnc("stat","teams"))
 # I choose ID=1
-head(wrapfnc("stat","teams",1))
+as.tbl(wrapfnc("stat","teams",1))
 # I choose Franchise full name="New Jersey Devils"
-head(wrapfnc("record","franchise","detail","mostRecentTeamId","New Jersey Devils"))
+as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New Jersey Devils"))
 ```
 
 # Getting basic ideas  

@@ -64,7 +64,8 @@ body {
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(httr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xml2)</span></code></pre></div>
 <h2 id="record-api-functions">Record-API Functions</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># to mapping Franchise ids vs Full names vs Most recent team ID</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>frurl <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="st">&quot;https://records.nhl.com/site/api/franchise&quot;</span>)</span>
@@ -109,13 +110,37 @@ body {
 <span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(rcdurl)</span>
 <span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>rcddt <span class="ot">&lt;-</span> <span class="cf">function</span>(list,...){</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  rcdNHL <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="fu">rcdURL</span>(list,...))</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  rcdtext <span class="ot">&lt;-</span> <span class="fu">content</span>(rcdNHL, <span class="st">&quot;text&quot;</span>,<span class="at">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  rcdlist <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(rcdtext, <span class="at">flatten=</span><span class="cn">TRUE</span>)</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  rcdlist <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(rcdlist)</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(rcdlist)</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>rcddt <span class="ot">&lt;-</span> <span class="cf">function</span>(list,recd,...){</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">missing</span>(recd)){</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    rcdNHL <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="fu">rcdURL</span>(list))</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    rcdtext <span class="ot">&lt;-</span> <span class="fu">content</span>(rcdNHL, <span class="st">&quot;text&quot;</span>,<span class="at">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    rcdlist <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(rcdtext, <span class="at">flatten=</span><span class="cn">TRUE</span>)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    rcdlist <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(rcdlist)</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> {</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (recd<span class="sc">==</span><span class="st">&quot;detail&quot;</span>){</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>      rcdNHL <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="fu">rcdURL</span>(list,recd,...))</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>      rcdtext <span class="ot">&lt;-</span> <span class="fu">content</span>(rcdNHL, <span class="st">&quot;text&quot;</span>,<span class="at">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>      rcdlist <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(rcdtext, <span class="at">flatten=</span><span class="cn">TRUE</span>)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>      rcdlist <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(rcdlist)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>      ca<span class="ot">&lt;-</span><span class="fu">read_html</span>(rcdlist<span class="sc">$</span>data.captainHistory)        </span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>      rcdlist<span class="sc">$</span>data.captainHistory<span class="ot">&lt;-</span> <span class="fu">xml_text</span>(ca)</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>      co<span class="ot">&lt;-</span><span class="fu">read_html</span>(rcdlist<span class="sc">$</span>data.coachingHistory)        </span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>      rcdlist<span class="sc">$</span>data.coachingHistory<span class="ot">&lt;-</span> <span class="fu">xml_text</span>(co)</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>      ge<span class="ot">&lt;-</span><span class="fu">read_html</span>(rcdlist<span class="sc">$</span>data.generalManagerHistory)        </span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>      rcdlist<span class="sc">$</span>data.generalManagerHistory<span class="ot">&lt;-</span> <span class="fu">xml_text</span>(ge)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>      re<span class="ot">&lt;-</span><span class="fu">read_html</span>(rcdlist<span class="sc">$</span>data.retiredNumbersSummary)        </span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>      rcdlist<span class="sc">$</span>data.retiredNumbersSummary<span class="ot">&lt;-</span> <span class="fu">xml_text</span>(re)</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> {</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>      rcdNHL <span class="ot">&lt;-</span> <span class="fu">GET</span>(<span class="fu">rcdURL</span>(list,recd,...))</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>      rcdtext <span class="ot">&lt;-</span> <span class="fu">content</span>(rcdNHL, <span class="st">&quot;text&quot;</span>,<span class="at">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>      rcdlist <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(rcdtext, <span class="at">flatten=</span><span class="cn">TRUE</span>)</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>      rcdlist <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(rcdlist)</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(rcdlist)</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <h2 id="stat-api-function">Stat-API function</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>statURL <span class="ot">&lt;-</span> <span class="cf">function</span>(list,id){</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">missing</span>(id)){</span>
@@ -171,550 +196,250 @@ body {
 ## # ... with 29 more rows, and 4 more variables: data.teamAbbrev &lt;chr&gt;,
 ## #   data.teamCommonName &lt;chr&gt;, data.teamPlaceName &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <h2 id="franchise-team-totals-records">Franchise-team-totals Records</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;team-totals&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.activeFranchise data.firstSeasonId data.franchiseId
-## 1       1                    1           19821983               23
-## 2       2                    1           19821983               23
-## 3       3                    1           19721973               22
-## 4       4                    1           19721973               22
-## 5       5                    1           19261927               10
-## 6       6                    1           19261927               10
-##   data.gameTypeId data.gamesPlayed data.goalsAgainst data.goalsFor
-## 1               2             2993              8902          8792
-## 2               3              257               634           697
-## 3               2             3788             11907         12045
-## 4               3              309               897           983
-## 5               2             6560             20020         20041
-## 6               3              518              1447          1404
-##   data.homeLosses data.homeOvertimeLosses data.homeTies data.homeWins
-## 1             525                      85            96           790
-## 2              53                       0            NA            74
-## 3             678                      84           170           963
-## 4              53                       1            NA            94
-## 5            1143                      76           448          1614
-## 6             104                       0             1           137
-##   data.lastSeasonId data.losses data.overtimeLosses data.penaltyMinutes
-## 1                NA        1211                 169               44773
-## 2                NA         120                   0                4266
-## 3                NA        1587                 166               57792
-## 4                NA         139                   0                5689
-## 5                NA        2716                 153               86129
-## 6                NA         266                   0                8181
-##   data.pointPctg data.points data.roadLosses data.roadOvertimeLosses
-## 1         0.5306        3176             686                      84
-## 2         0.0039           2              67                       0
-## 3         0.5133        3889             909                      82
-## 4         0.0129           8              86                       2
-## 5         0.5127        6727            1573                      77
-## 6         0.0000           0             162                       0
-##   data.roadTies data.roadWins data.shootoutLosses data.shootoutWins
-## 1           123           604                  84                78
-## 2            NA            63                   0                 0
-## 3           177           725                  70                86
-## 4            NA            76                   0                 0
-## 5           360          1269                  68                79
-## 6             7           107                   0                 0
-##   data.shutouts data.teamId      data.teamName data.ties data.triCode
-## 1           196           1  New Jersey Devils       219          NJD
-## 2            25           1  New Jersey Devils        NA          NJD
-## 3           177           2 New York Islanders       347          NYI
-## 4            12           2 New York Islanders        NA          NYI
-## 5           408           3   New York Rangers       808          NYR
-## 6            44           3   New York Rangers         8          NYR
-##   data.wins total
-## 1      1394   105
-## 2       137   105
-## 3      1688   105
-## 4       170   105
-## 5      2883   105
-## 6       244   105</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;team-totals&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 105 x 31
+##    data.id data.activeFran~ data.firstSeaso~ data.franchiseId
+##      &lt;int&gt;            &lt;int&gt;            &lt;int&gt;            &lt;int&gt;
+##  1       1                1         19821983               23
+##  2       2                1         19821983               23
+##  3       3                1         19721973               22
+##  4       4                1         19721973               22
+##  5       5                1         19261927               10
+##  6       6                1         19261927               10
+##  7       7                1         19671968               16
+##  8       8                1         19671968               16
+##  9       9                1         19671968               17
+## 10      10                1         19671968               17
+## # ... with 95 more rows, and 27 more variables: data.gameTypeId &lt;int&gt;,
+## #   data.gamesPlayed &lt;int&gt;, data.goalsAgainst &lt;int&gt;, data.goalsFor &lt;int&gt;,
+## #   data.homeLosses &lt;int&gt;, data.homeOvertimeLosses &lt;int&gt;,
+## #   data.homeTies &lt;int&gt;, data.homeWins &lt;int&gt;, data.lastSeasonId &lt;int&gt;,
+## #   data.losses &lt;int&gt;, data.overtimeLosses &lt;int&gt;,
+## #   data.penaltyMinutes &lt;int&gt;, data.pointPctg &lt;dbl&gt;, data.points &lt;int&gt;,
+## #   data.roadLosses &lt;int&gt;, data.roadOvertimeLosses &lt;int&gt;,
+## #   data.roadTies &lt;int&gt;, data.roadWins &lt;int&gt;, data.shootoutLosses &lt;int&gt;,
+## #   data.shootoutWins &lt;int&gt;, data.shutouts &lt;int&gt;, data.teamId &lt;int&gt;,
+## #   data.teamName &lt;chr&gt;, data.ties &lt;int&gt;, data.triCode &lt;chr&gt;,
+## #   data.wins &lt;int&gt;, total &lt;int&gt;</code></pre>
 <h2 id="franchise-season-records-by-franchiseidid">franchise-season-records by franchiseId=ID</h2>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose ID=10</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;season-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">10</span>))</span></code></pre></div>
-<pre><code>##   data.id data.fewestGoals data.fewestGoalsAgainst
-## 1       3              150                     177
-##   data.fewestGoalsAgainstSeasons data.fewestGoalsSeasons data.fewestLosses
-## 1                   1970-71 (78)            1954-55 (70)                17
-##   data.fewestLossesSeasons data.fewestPoints data.fewestPointsSeasons
-## 1             1971-72 (78)                47             1965-66 (70)
-##   data.fewestTies data.fewestTiesSeasons data.fewestWins
-## 1               4           2001-02 (82)              17
-##                     data.fewestWinsSeasons data.franchiseId
-## 1 1952-53 (70), 1954-55 (70), 1959-60 (70)               10
-##   data.franchiseName data.homeLossStreak
-## 1   New York Rangers                   7
-##                               data.homeLossStreakDates
-## 1 Oct 20 1976 - Nov 14 1976, Mar 24 1993 - Apr 14 1993
-##   data.homePointStreak
-## 1                   24
-##                              data.homePointStreakDates data.homeWinStreak
-## 1 Oct 14 1970 - Jan 31 1971, Oct 24 1995 - Feb 15 1996                 14
-##     data.homeWinStreakDates data.homeWinlessStreak
-## 1 Dec 19 1939 - Feb 25 1940                     10
-##   data.homeWinlessStreakDates data.lossStreak      data.lossStreakDates
-## 1   Jan 30 1944 - Mar 19 1944              11 Oct 30 1943 - Nov 27 1943
-##   data.mostGameGoals      data.mostGameGoalsDates data.mostGoals
-## 1                 12 Nov 21 1971 - CGS 1 @ NYR 12            321
-##   data.mostGoalsAgainst data.mostGoalsAgainstSeasons data.mostGoalsSeasons
-## 1                   345                 1984-85 (80)          1991-92 (80)
-##   data.mostLosses data.mostLossesSeasons data.mostPenaltyMinutes
-## 1              44           1984-85 (80)                    2021
-##   data.mostPenaltyMinutesSeasons data.mostPoints data.mostPointsSeasons
-## 1                   1989-90 (80)             113           2014-15 (82)
-##   data.mostShutouts data.mostShutoutsSeasons data.mostTies
-## 1                13             1928-29 (44)            21
-##   data.mostTiesSeasons data.mostWins data.mostWinsSeasons data.pointStreak
-## 1         1950-51 (70)            53         2014-15 (82)               19
-##       data.pointStreakDates data.roadLossStreak
-## 1 Nov 23 1939 - Jan 13 1940                  10
-##                               data.roadLossStreakDates
-## 1 Oct 30 1943 - Dec 23 1943, Feb 08 1961 - Mar 15 1961
-##   data.roadPointStreak data.roadPointStreakDates data.roadWinStreak
-## 1                   11 Nov 05 1939 - Jan 13 1940                  9
-##     data.roadWinStreakDates data.roadWinlessStreak
-## 1 Jan 16 2020 - Feb 27 2020                     16
-##   data.roadWinlessStreakDates data.winStreak
-## 1   Oct 09 1952 - Dec 20 1952             10
-##                                    data.winStreakDates data.winlessStreak
-## 1 Dec 19 1939 - Jan 13 1940, Jan 19 1973 - Feb 10 1973                 21
-##     data.winlessStreakDates total
-## 1 Jan 23 1944 - Mar 19 1944     1</code></pre>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;season-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">10</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 58
+##   data.id data.fewestGoals data.fewestGoal~ data.fewestGoal~
+##     &lt;int&gt;            &lt;int&gt;            &lt;int&gt; &lt;chr&gt;           
+## 1       3              150              177 1970-71 (78)    
+## # ... with 54 more variables: data.fewestGoalsSeasons &lt;chr&gt;,
+## #   data.fewestLosses &lt;int&gt;, data.fewestLossesSeasons &lt;chr&gt;,
+## #   data.fewestPoints &lt;int&gt;, data.fewestPointsSeasons &lt;chr&gt;,
+## #   data.fewestTies &lt;int&gt;, data.fewestTiesSeasons &lt;chr&gt;,
+## #   data.fewestWins &lt;int&gt;, data.fewestWinsSeasons &lt;chr&gt;,
+## #   data.franchiseId &lt;int&gt;, data.franchiseName &lt;chr&gt;,
+## #   data.homeLossStreak &lt;int&gt;, data.homeLossStreakDates &lt;chr&gt;,
+## #   data.homePointStreak &lt;int&gt;, data.homePointStreakDates &lt;chr&gt;,
+## #   data.homeWinStreak &lt;int&gt;, data.homeWinStreakDates &lt;chr&gt;,
+## #   data.homeWinlessStreak &lt;int&gt;, data.homeWinlessStreakDates &lt;chr&gt;,
+## #   data.lossStreak &lt;int&gt;, data.lossStreakDates &lt;chr&gt;,
+## #   data.mostGameGoals &lt;int&gt;, data.mostGameGoalsDates &lt;chr&gt;,
+## #   data.mostGoals &lt;int&gt;, data.mostGoalsAgainst &lt;int&gt;,
+## #   data.mostGoalsAgainstSeasons &lt;chr&gt;, data.mostGoalsSeasons &lt;chr&gt;,
+## #   data.mostLosses &lt;int&gt;, data.mostLossesSeasons &lt;chr&gt;,
+## #   data.mostPenaltyMinutes &lt;int&gt;, data.mostPenaltyMinutesSeasons &lt;chr&gt;,
+## #   data.mostPoints &lt;int&gt;, data.mostPointsSeasons &lt;chr&gt;,
+## #   data.mostShutouts &lt;int&gt;, data.mostShutoutsSeasons &lt;chr&gt;,
+## #   data.mostTies &lt;int&gt;, data.mostTiesSeasons &lt;chr&gt;, data.mostWins &lt;int&gt;,
+## #   data.mostWinsSeasons &lt;chr&gt;, data.pointStreak &lt;int&gt;,
+## #   data.pointStreakDates &lt;chr&gt;, data.roadLossStreak &lt;int&gt;,
+## #   data.roadLossStreakDates &lt;chr&gt;, data.roadPointStreak &lt;int&gt;,
+## #   data.roadPointStreakDates &lt;chr&gt;, data.roadWinStreak &lt;int&gt;,
+## #   data.roadWinStreakDates &lt;chr&gt;, data.roadWinlessStreak &lt;int&gt;,
+## #   data.roadWinlessStreakDates &lt;chr&gt;, data.winStreak &lt;int&gt;,
+## #   data.winStreakDates &lt;chr&gt;, data.winlessStreak &lt;int&gt;,
+## #   data.winlessStreakDates &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose Franchise full name=&quot;New Jersey Devils&quot;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;season-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;New Jersey Devils&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.fewestGoals data.fewestGoalsAgainst
-## 1       1              174                     164
-##   data.fewestGoalsAgainstSeasons data.fewestGoalsSeasons data.fewestLosses
-## 1                   2003-04 (82)            2010-11 (82)                19
-##   data.fewestLossesSeasons data.fewestPoints data.fewestPointsSeasons
-## 1             2000-01 (82)                36             1975-76 (80)
-##   data.fewestTies data.fewestTiesSeasons data.fewestWins
-## 1               3           1985-86 (80)              12
-##   data.fewestWinsSeasons data.franchiseId data.franchiseName
-## 1           1975-76 (80)               23  New Jersey Devils
-##   data.homeLossStreak  data.homeLossStreakDates data.homePointStreak
-## 1                  10 Jan 26 2021 - Mar 13 2021                   15
-##                              data.homePointStreakDates data.homeWinStreak
-## 1 Jan 08 1997 - Mar 15 1997, Dec 14 1999 - Feb 17 2000                 11
-##     data.homeWinStreakDates data.homeWinlessStreak
-## 1 Feb 09 2009 - Mar 20 2009                     14
-##                            data.homeWinlessStreakDates data.lossStreak
-## 1 Feb 12 1976 - Mar 30 1976, Feb 04 1979 - Mar 31 1979              14
-##        data.lossStreakDates data.mostGameGoals
-## 1 Dec 30 1975 - Jan 29 1976                  9
-##                                                                                                                                                                                                                                               data.mostGameGoalsDates
-## 1 Apr 01 1979 - STL 5 @ CLR 9, Feb 12 1982 - QUE 2 @ CLR 9, Apr 06 1986 - NYI 7 @ NJD 9, Mar 10 1990 - QUE 3 @ NJD 9, Dec 05 1990 - VAN 4 @ NJD 9, Oct 26 1991 - SJS 0 @ NJD 9, Mar 23 1993 - TBL 3 @ NJD 9, Mar 10 2000 - NJD 9 @ ATL 0, Oct 28 2000 - NJD 9 @ PIT 0
-##   data.mostGoals data.mostGoalsAgainst data.mostGoalsAgainstSeasons
-## 1            308                   374                 1985-86 (80)
-##   data.mostGoalsSeasons data.mostLosses     data.mostLossesSeasons
-## 1          1992-93 (84)              56 1975-76 (80), 1983-84 (80)
-##   data.mostPenaltyMinutes data.mostPenaltyMinutesSeasons data.mostPoints
-## 1                    2494                   1988-89 (80)             111
-##   data.mostPointsSeasons data.mostShutouts data.mostShutoutsSeasons
-## 1           2000-01 (82)                14             2003-04 (82)
-##   data.mostTies data.mostTiesSeasons data.mostWins data.mostWinsSeasons
-## 1            21         1977-78 (80)            51         2008-09 (82)
-##   data.pointStreak     data.pointStreakDates data.roadLossStreak
-## 1               16 Dec 26 1999 - Jan 28 2000                  12
-##    data.roadLossStreakDates data.roadPointStreak
-## 1 Oct 19 1983 - Dec 01 1983                   10
-##                              data.roadPointStreakDates data.roadWinStreak
-## 1 Feb 27 2001 - Apr 07 2001, Jan 30 2007 - Mar 15 2007                 10
-##     data.roadWinStreakDates data.roadWinlessStreak
-## 1 Feb 27 2001 - Apr 07 2001                     32
-##   data.roadWinlessStreakDates data.winStreak       data.winStreakDates
-## 1   Nov 12 1977 - Mar 15 1978             13 Feb 26 2001 - Mar 23 2001
-##   data.winlessStreak   data.winlessStreakDates total
-## 1                 27 Feb 12 1976 - Apr 04 1976     1</code></pre>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;season-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;New Jersey Devils&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 58
+##   data.id data.fewestGoals data.fewestGoal~ data.fewestGoal~
+##     &lt;int&gt;            &lt;int&gt;            &lt;int&gt; &lt;chr&gt;           
+## 1       1              174              164 2003-04 (82)    
+## # ... with 54 more variables: data.fewestGoalsSeasons &lt;chr&gt;,
+## #   data.fewestLosses &lt;int&gt;, data.fewestLossesSeasons &lt;chr&gt;,
+## #   data.fewestPoints &lt;int&gt;, data.fewestPointsSeasons &lt;chr&gt;,
+## #   data.fewestTies &lt;int&gt;, data.fewestTiesSeasons &lt;chr&gt;,
+## #   data.fewestWins &lt;int&gt;, data.fewestWinsSeasons &lt;chr&gt;,
+## #   data.franchiseId &lt;int&gt;, data.franchiseName &lt;chr&gt;,
+## #   data.homeLossStreak &lt;int&gt;, data.homeLossStreakDates &lt;chr&gt;,
+## #   data.homePointStreak &lt;int&gt;, data.homePointStreakDates &lt;chr&gt;,
+## #   data.homeWinStreak &lt;int&gt;, data.homeWinStreakDates &lt;chr&gt;,
+## #   data.homeWinlessStreak &lt;int&gt;, data.homeWinlessStreakDates &lt;chr&gt;,
+## #   data.lossStreak &lt;int&gt;, data.lossStreakDates &lt;chr&gt;,
+## #   data.mostGameGoals &lt;int&gt;, data.mostGameGoalsDates &lt;chr&gt;,
+## #   data.mostGoals &lt;int&gt;, data.mostGoalsAgainst &lt;int&gt;,
+## #   data.mostGoalsAgainstSeasons &lt;chr&gt;, data.mostGoalsSeasons &lt;chr&gt;,
+## #   data.mostLosses &lt;int&gt;, data.mostLossesSeasons &lt;chr&gt;,
+## #   data.mostPenaltyMinutes &lt;int&gt;, data.mostPenaltyMinutesSeasons &lt;chr&gt;,
+## #   data.mostPoints &lt;int&gt;, data.mostPointsSeasons &lt;chr&gt;,
+## #   data.mostShutouts &lt;int&gt;, data.mostShutoutsSeasons &lt;chr&gt;,
+## #   data.mostTies &lt;int&gt;, data.mostTiesSeasons &lt;chr&gt;, data.mostWins &lt;int&gt;,
+## #   data.mostWinsSeasons &lt;chr&gt;, data.pointStreak &lt;int&gt;,
+## #   data.pointStreakDates &lt;chr&gt;, data.roadLossStreak &lt;int&gt;,
+## #   data.roadLossStreakDates &lt;chr&gt;, data.roadPointStreak &lt;int&gt;,
+## #   data.roadPointStreakDates &lt;chr&gt;, data.roadWinStreak &lt;int&gt;,
+## #   data.roadWinStreakDates &lt;chr&gt;, data.roadWinlessStreak &lt;int&gt;,
+## #   data.roadWinlessStreakDates &lt;chr&gt;, data.winStreak &lt;int&gt;,
+## #   data.winStreakDates &lt;chr&gt;, data.winlessStreak &lt;int&gt;,
+## #   data.winlessStreakDates &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <h2 id="franchise-goalie-records-by-franchiseidid">franchise-goalie-records by franchiseId=ID</h2>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose ID=20</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;goalie-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">20</span>))</span></code></pre></div>
-<pre><code>##   data.id data.activePlayer data.firstName data.franchiseId
-## 1     304             FALSE        Richard               20
-## 2     364             FALSE           Gary               20
-## 3     367             FALSE           Sean               20
-## 4    1224             FALSE          Frank               20
-## 5     373             FALSE        Jacques               20
-## 6     406             FALSE            Bob               20
-##   data.franchiseName data.gameTypeId data.gamesPlayed data.lastName
-## 1  Vancouver Canucks               2              377       Brodeur
-## 2  Vancouver Canucks               2               73       Bromley
-## 3  Vancouver Canucks               2               16         Burke
-## 4  Vancouver Canucks               2              102       Caprice
-## 5  Vancouver Canucks               2               10         Caron
-## 6  Vancouver Canucks               2               39       Essensa
-##   data.losses         data.mostGoalsAgainstDates
-## 1         173                         1981-10-17
-## 2          27             1981-02-20, 1979-03-08
-## 3           9 1998-01-28, 1998-01-21, 1998-01-15
-## 4          46                         1985-11-08
-## 5           5                         1973-12-20
-## 6          12             2001-02-17, 2000-12-29
-##   data.mostGoalsAgainstOneGame data.mostSavesDates data.mostSavesOneGame
-## 1                           10          1985-02-10                    51
-## 2                            9          1979-03-15                    41
-## 3                            6          1998-01-26                    33
-## 4                           13          1983-12-18                    41
-## 5                            9          1973-11-27                    33
-## 6                            5          2001-03-13                    37
-##   data.mostShotsAgainstDates data.mostShotsAgainstOneGame
-## 1                 1985-02-10                           54
-## 2                 1979-03-15                           45
-## 3     1998-01-28, 1998-01-26                           36
-## 4     1984-11-17, 1984-10-13                           45
-## 5                 1973-12-20                           39
-## 6                 2001-03-13                           39
-##   data.mostShutoutsOneSeason data.mostShutoutsSeasonIds
-## 1                          2         19811982, 19851986
-## 2                          2                   19781979
-## 3                          0                   19971998
-## 4                          1                   19831984
-## 5                          0                   19731974
-## 6                          1                   20002001
-##   data.mostWinsOneSeason       data.mostWinsSeasonIds data.overtimeLosses
-## 1                     21                     19821983                  NA
-## 2                     11                     19781979                  NA
-## 3                      2                     19971998                  NA
-## 4                      8 19831984, 19841985, 19861987                  NA
-## 5                      2                     19731974                  NA
-## 6                     18                     20002001                  NA
-##   data.playerId data.positionCode data.rookieGamesPlayed
-## 1       8445694                 G                     NA
-## 2       8445695                 G                     NA
-## 3       8445769                 G                     NA
-## 4       8445919                 G                     28
-## 5       8445966                 G                     NA
-## 6       8446719                 G                     NA
-##   data.rookieShutouts data.rookieWins data.seasons data.shutouts data.ties
-## 1                  NA              NA            8             6        62
-## 2                  NA              NA            3             3        14
-## 3                  NA              NA            1             0         4
-## 4                   1               8            6             1        11
-## 5                  NA              NA            1             0         1
-## 6                  NA              NA            1             1         3
-##   data.wins total
-## 1       126    40
-## 2        25    40
-## 3         2    40
-## 4        31    40
-## 5         2    40
-## 6        18    40</code></pre>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;goalie-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">20</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 40 x 30
+##    data.id data.activePlay~ data.firstName data.franchiseId
+##      &lt;int&gt; &lt;lgl&gt;            &lt;chr&gt;                     &lt;int&gt;
+##  1     304 FALSE            Richard                      20
+##  2     364 FALSE            Gary                         20
+##  3     367 FALSE            Sean                         20
+##  4    1224 FALSE            Frank                        20
+##  5     373 FALSE            Jacques                      20
+##  6     406 FALSE            Bob                          20
+##  7     423 FALSE            Troy                         20
+##  8     424 FALSE            John                         20
+##  9     500 FALSE            Bob                          20
+## 10     243 FALSE            Kirk                         20
+## # ... with 30 more rows, and 26 more variables: data.franchiseName &lt;chr&gt;,
+## #   data.gameTypeId &lt;int&gt;, data.gamesPlayed &lt;int&gt;, data.lastName &lt;chr&gt;,
+## #   data.losses &lt;int&gt;, data.mostGoalsAgainstDates &lt;chr&gt;,
+## #   data.mostGoalsAgainstOneGame &lt;int&gt;, data.mostSavesDates &lt;chr&gt;,
+## #   data.mostSavesOneGame &lt;int&gt;, data.mostShotsAgainstDates &lt;chr&gt;,
+## #   data.mostShotsAgainstOneGame &lt;int&gt;, data.mostShutoutsOneSeason &lt;int&gt;,
+## #   data.mostShutoutsSeasonIds &lt;chr&gt;, data.mostWinsOneSeason &lt;int&gt;,
+## #   data.mostWinsSeasonIds &lt;chr&gt;, data.overtimeLosses &lt;int&gt;,
+## #   data.playerId &lt;int&gt;, data.positionCode &lt;chr&gt;,
+## #   data.rookieGamesPlayed &lt;int&gt;, data.rookieShutouts &lt;int&gt;,
+## #   data.rookieWins &lt;int&gt;, data.seasons &lt;int&gt;, data.shutouts &lt;int&gt;,
+## #   data.ties &lt;int&gt;, data.wins &lt;int&gt;, total &lt;int&gt;</code></pre>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose Franchise full name=&quot;Philadelphia Flyers&quot;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;goalie-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;Philadelphia Flyers&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.activePlayer data.firstName data.franchiseId
-## 1     341             FALSE       Stephane               16
-## 2     366             FALSE           Sean               16
-## 3     440             FALSE           Jeff               16
-## 4     239             FALSE            Ron               16
-## 5     466             FALSE           Gary               16
-## 6     482             FALSE           Mark               16
-##    data.franchiseName data.gameTypeId data.gamesPlayed data.lastName
-## 1 Philadelphia Flyers               2               16    Beauregard
-## 2 Philadelphia Flyers               2               26         Burke
-## 3 Philadelphia Flyers               2               27       Hackett
-## 4 Philadelphia Flyers               2              489       Hextall
-## 5 Philadelphia Flyers               2                8        Inness
-## 6 Philadelphia Flyers               2               38      Laforest
-##   data.losses data.mostGoalsAgainstDates data.mostGoalsAgainstOneGame
-## 1           9                 1992-11-28                            9
-## 2           8     2004-02-17, 2004-02-16                            5
-## 3          10                 2004-01-13                            6
-## 4         172                 1987-04-05                            9
-## 5           0                 1976-10-17                            4
-## 6          16     1989-01-15, 1988-10-22                            8
-##                  data.mostSavesDates data.mostSavesOneGame
-## 1 1992-12-12, 1992-11-28, 1992-11-04                    31
-## 2                         2004-02-26                    40
-## 3                         2003-12-06                    38
-## 4                         1990-12-23                    45
-## 5                         1976-03-25                    36
-## 6                         1988-03-25                    47
-##   data.mostShotsAgainstDates data.mostShotsAgainstOneGame
-## 1                 1992-11-28                           40
-## 2     2004-02-26, 2004-02-19                           41
-## 3                 2003-12-06                           39
-## 4                 1988-10-13                           50
-## 5                 1976-03-25                           37
-## 6                 1988-03-25                           51
-##   data.mostShutoutsOneSeason data.mostShutoutsSeasonIds
-## 1                          0                   19921993
-## 2                          1         19971998, 20032004
-## 3                          3                   20032004
-## 4                          5                   19961997
-## 5                          0         19751976, 19761977
-## 6                          1                   19871988
-##   data.mostWinsOneSeason data.mostWinsSeasonIds data.overtimeLosses
-## 1                      3               19921993                  NA
-## 2                      7               19971998                  NA
-## 3                     10               20032004                  NA
-## 4                     37               19861987                  NA
-## 5                      2               19751976                  NA
-## 6                      5     19871988, 19881989                  NA
-##   data.playerId data.positionCode data.rookieGamesPlayed
-## 1       8445382                 G                     NA
-## 2       8445769                 G                     NA
-## 3       8447449                 G                     NA
-## 4       8447775                 G                     66
-## 5       8448175                 G                     NA
-## 6       8448628                 G                     NA
-##   data.rookieShutouts data.rookieWins data.seasons data.shutouts data.ties
-## 1                  NA              NA            1             0         0
-## 2                  NA              NA            2             2         2
-## 3                  NA              NA            1             3         6
-## 4                   1              37           11            18        58
-## 5                  NA              NA            2             0         2
-## 6                  NA              NA            2             1         4
-##   data.wins total
-## 1         3    34
-## 2        13    34
-## 3        10    34
-## 4       240    34
-## 5         3    34
-## 6        10    34</code></pre>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;goalie-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;Philadelphia Flyers&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 34 x 30
+##    data.id data.activePlay~ data.firstName data.franchiseId
+##      &lt;int&gt; &lt;lgl&gt;            &lt;chr&gt;                     &lt;int&gt;
+##  1     341 FALSE            Stephane                     16
+##  2     366 FALSE            Sean                         16
+##  3     440 FALSE            Jeff                         16
+##  4     239 FALSE            Ron                          16
+##  5     466 FALSE            Gary                         16
+##  6     482 FALSE            Mark                         16
+##  7     485 FALSE            Michel                       16
+##  8     531 FALSE            Phil                         16
+##  9     584 FALSE            Bruce                        16
+## 10     307 FALSE            Bernie                       16
+## # ... with 24 more rows, and 26 more variables: data.franchiseName &lt;chr&gt;,
+## #   data.gameTypeId &lt;int&gt;, data.gamesPlayed &lt;int&gt;, data.lastName &lt;chr&gt;,
+## #   data.losses &lt;int&gt;, data.mostGoalsAgainstDates &lt;chr&gt;,
+## #   data.mostGoalsAgainstOneGame &lt;int&gt;, data.mostSavesDates &lt;chr&gt;,
+## #   data.mostSavesOneGame &lt;int&gt;, data.mostShotsAgainstDates &lt;chr&gt;,
+## #   data.mostShotsAgainstOneGame &lt;int&gt;, data.mostShutoutsOneSeason &lt;int&gt;,
+## #   data.mostShutoutsSeasonIds &lt;chr&gt;, data.mostWinsOneSeason &lt;int&gt;,
+## #   data.mostWinsSeasonIds &lt;chr&gt;, data.overtimeLosses &lt;int&gt;,
+## #   data.playerId &lt;int&gt;, data.positionCode &lt;chr&gt;,
+## #   data.rookieGamesPlayed &lt;int&gt;, data.rookieShutouts &lt;int&gt;,
+## #   data.rookieWins &lt;int&gt;, data.seasons &lt;int&gt;, data.shutouts &lt;int&gt;,
+## #   data.ties &lt;int&gt;, data.wins &lt;int&gt;, total &lt;int&gt;</code></pre>
 <h2 id="franchise-skater-records-by-franchiseidid">franchise-skater-records by franchiseId=ID</h2>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose ID=30</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;skater-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">30</span>))</span></code></pre></div>
-<pre><code>##   data.id data.activePlayer data.assists data.firstName data.franchiseId
-## 1   18785             FALSE            0            Joe               30
-## 2   19225             FALSE            0          Bobby               30
-## 3   19982             FALSE            1           Marc               30
-## 4   22168             FALSE            2          Steve               30
-## 5   22256             FALSE            1            Jim               30
-## 6   22437             FALSE            1        Dominic               30
-##   data.franchiseName data.gameTypeId data.gamesPlayed data.goals
-## 1    Ottawa Senators               2                6          0
-## 2    Ottawa Senators               2                1          0
-## 3    Ottawa Senators               2               10          0
-## 4    Ottawa Senators               2                8          0
-## 5    Ottawa Senators               2                4          0
-## 6    Ottawa Senators               2                2          0
-##   data.lastName
-## 1       Cirella
-## 2        Dollas
-## 3       Fortier
-## 4       Konroyd
-## 5          Kyte
-## 6        Lavoie
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                data.mostAssistsGameDates
-## 1 1995-10-07, 1995-10-13, 1995-10-15, 1995-10-19, 1995-10-21, 1995-10-22, 1995-10-24, 1995-10-26, 1995-10-28, 1995-10-29, 1995-11-02, 1995-11-04, 1995-11-08, 1995-11-09, 1995-11-11, 1995-11-15, 1995-11-16, 1995-11-18, 1995-11-19, 1995-11-22, 1995-11-25, 1995-11-28, 1995-11-30, 1995-12-02, 1995-12-05, 1995-12-07, 1995-12-09, 1995-12-12, 1995-12-13, 1995-12-15, 1995-12-17, 1995-12-18, 1995-12-23, 1995-12-26, 1995-12-27, 1995-12-30, 1995-12-31, 1996-01-03, 1996-01-05, 1996-01-06, 1996-01-11, 1996-01-13, 1996-01-17, 1996-01-22, 1996-01-24, 1996-01-25, 1996-01-27, 1996-01-29, 1996-01-31, 1996-02-01, 1996-02-03, 1996-02-06, 1996-02-08, 1996-02-10, 1996-02-12, 1996-02-15, 1996-02-17, 1996-02-20, 1996-02-22, 1996-02-25, 1996-02-28, 1996-03-01, 1996-03-02, 1996-03-07, 1996-03-09, 1996-03-13, 1996-03-15, 1996-03-17, 1996-03-19, 1996-03-21, 1996-03-22, 1996-03-24, 1996-03-27, 1996-03-29, 1996-03-30, 1996-04-01, 1996-04-03, 1996-04-05, 1996-04-06, 1996-04-10, 1996-04-11, 1996-04-13
-## 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1999-11-10, 1999-11-11
-## 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-10-08
-## 4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1994-03-23, 1994-03-30
-## 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-12-07
-## 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-11-15
-##   data.mostAssistsOneGame data.mostAssistsOneSeason
-## 1                       0                         0
-## 2                       0                         0
-## 3                       1                         1
-## 4                       1                         2
-## 5                       1                         1
-## 6                       1                         1
-##   data.mostAssistsSeasonIds
-## 1                  19951996
-## 2                  19992000
-## 3                  19921993
-## 4                  19931994
-## 5                  19921993
-## 6                  19921993
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  data.mostGoalsGameDates
-## 1 1995-10-07, 1995-10-13, 1995-10-15, 1995-10-19, 1995-10-21, 1995-10-22, 1995-10-24, 1995-10-26, 1995-10-28, 1995-10-29, 1995-11-02, 1995-11-04, 1995-11-08, 1995-11-09, 1995-11-11, 1995-11-15, 1995-11-16, 1995-11-18, 1995-11-19, 1995-11-22, 1995-11-25, 1995-11-28, 1995-11-30, 1995-12-02, 1995-12-05, 1995-12-07, 1995-12-09, 1995-12-12, 1995-12-13, 1995-12-15, 1995-12-17, 1995-12-18, 1995-12-23, 1995-12-26, 1995-12-27, 1995-12-30, 1995-12-31, 1996-01-03, 1996-01-05, 1996-01-06, 1996-01-11, 1996-01-13, 1996-01-17, 1996-01-22, 1996-01-24, 1996-01-25, 1996-01-27, 1996-01-29, 1996-01-31, 1996-02-01, 1996-02-03, 1996-02-06, 1996-02-08, 1996-02-10, 1996-02-12, 1996-02-15, 1996-02-17, 1996-02-20, 1996-02-22, 1996-02-25, 1996-02-28, 1996-03-01, 1996-03-02, 1996-03-07, 1996-03-09, 1996-03-13, 1996-03-15, 1996-03-17, 1996-03-19, 1996-03-21, 1996-03-22, 1996-03-24, 1996-03-27, 1996-03-29, 1996-03-30, 1996-04-01, 1996-04-03, 1996-04-05, 1996-04-06, 1996-04-10, 1996-04-11, 1996-04-13
-## 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1999-11-10, 1999-11-11
-## 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         1992-10-08, 1992-10-10, 1992-10-12, 1992-10-14, 1992-10-16, 1992-10-20, 1992-10-22, 1992-10-24, 1992-10-27, 1992-10-30, 1992-10-31, 1992-11-03, 1992-11-05, 1992-11-06, 1992-11-09, 1992-11-11, 1992-11-13, 1992-11-15, 1992-11-17, 1992-11-19, 1992-11-21, 1992-11-23, 1992-11-25, 1992-11-27, 1992-11-29, 1992-12-01, 1992-12-03, 1992-12-05, 1992-12-07, 1992-12-09, 1992-12-10, 1992-12-12, 1992-12-15, 1992-12-17, 1992-12-26, 1992-12-27
-## 4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     1994-03-23, 1994-03-24, 1994-03-28, 1994-03-30, 1994-04-02, 1994-04-06, 1994-04-07, 1994-04-09, 1994-04-11, 1994-04-13, 1994-04-14
-## 5                                                                                                                                                                                                                                                                         1992-11-29, 1992-12-01, 1992-12-03, 1992-12-05, 1992-12-07, 1992-12-09, 1992-12-10, 1992-12-12, 1992-12-15, 1992-12-17, 1992-12-19, 1992-12-21, 1992-12-23, 1992-12-26, 1992-12-27, 1992-12-31, 1993-01-02, 1993-01-06, 1993-01-08, 1993-01-10, 1993-01-12, 1993-01-14, 1993-01-16, 1993-01-17, 1993-01-19, 1993-01-21, 1993-01-23, 1993-01-26, 1993-01-28, 1993-01-30, 1993-02-01, 1993-02-03, 1993-02-08, 1993-02-09, 1993-02-13, 1993-02-17, 1993-02-20, 1993-02-22, 1993-02-23, 1993-02-25, 1993-02-27, 1993-02-28, 1993-03-02, 1993-03-04, 1993-03-07, 1993-03-13, 1993-03-18, 1993-03-22, 1993-03-25, 1993-03-27, 1993-03-28, 1993-03-30, 1993-04-01, 1993-04-03, 1993-04-04, 1993-04-07, 1993-04-10, 1993-04-11, 1993-04-13, 1993-04-14
-## 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-11-13, 1992-11-15, 1992-11-17, 1992-11-19, 1992-11-21
-##   data.mostGoalsOneGame data.mostGoalsOneSeason data.mostGoalsSeasonIds
-## 1                     0                       0                19951996
-## 2                     0                       0                19992000
-## 3                     0                       0                19921993
-## 4                     0                       0                19931994
-## 5                     0                       0                19921993
-## 6                     0                       0                19921993
-##   data.mostPenaltyMinutesOneSeason data.mostPenaltyMinutesSeasonIds
-## 1                                4                         19951996
-## 2                                0                         19992000
-## 3                                6                         19921993
-## 4                                2                         19931994
-## 5                                4                         19921993
-## 6                                0                         19921993
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data.mostPointsGameDates
-## 1 1995-10-07, 1995-10-13, 1995-10-15, 1995-10-19, 1995-10-21, 1995-10-22, 1995-10-24, 1995-10-26, 1995-10-28, 1995-10-29, 1995-11-02, 1995-11-04, 1995-11-08, 1995-11-09, 1995-11-11, 1995-11-15, 1995-11-16, 1995-11-18, 1995-11-19, 1995-11-22, 1995-11-25, 1995-11-28, 1995-11-30, 1995-12-02, 1995-12-05, 1995-12-07, 1995-12-09, 1995-12-12, 1995-12-13, 1995-12-15, 1995-12-17, 1995-12-18, 1995-12-23, 1995-12-26, 1995-12-27, 1995-12-30, 1995-12-31, 1996-01-03, 1996-01-05, 1996-01-06, 1996-01-11, 1996-01-13, 1996-01-17, 1996-01-22, 1996-01-24, 1996-01-25, 1996-01-27, 1996-01-29, 1996-01-31, 1996-02-01, 1996-02-03, 1996-02-06, 1996-02-08, 1996-02-10, 1996-02-12, 1996-02-15, 1996-02-17, 1996-02-20, 1996-02-22, 1996-02-25, 1996-02-28, 1996-03-01, 1996-03-02, 1996-03-07, 1996-03-09, 1996-03-13, 1996-03-15, 1996-03-17, 1996-03-19, 1996-03-21, 1996-03-22, 1996-03-24, 1996-03-27, 1996-03-29, 1996-03-30, 1996-04-01, 1996-04-03, 1996-04-05, 1996-04-06, 1996-04-10, 1996-04-11, 1996-04-13
-## 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1999-11-10, 1999-11-11
-## 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-10-08
-## 4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1994-03-23, 1994-03-30
-## 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-12-07
-## 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1992-11-15
-##   data.mostPointsOneGame data.mostPointsOneSeason data.mostPointsSeasonIds
-## 1                      0                        0                 19951996
-## 2                      0                        0                 19992000
-## 3                      1                        1                 19921993
-## 4                      1                        2                 19931994
-## 5                      1                        1                 19921993
-## 6                      1                        1                 19921993
-##   data.penaltyMinutes data.playerId data.points data.positionCode
-## 1                   4       8446062           0                 D
-## 2                   0       8446435           0                 D
-## 3                   6       8446935           1                 C
-## 4                   2       8448521           2                 D
-## 5                   4       8448577           1                 D
-## 6                   0       8448717           1                 D
-##   data.rookieGamesPlayed data.rookiePoints data.seasons total
-## 1                     NA                NA            1   364
-## 2                     NA                NA            1   364
-## 3                     NA                NA            1   364
-## 4                     NA                NA            1   364
-## 5                     NA                NA            1   364
-## 6                     NA                NA            1   364</code></pre>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;skater-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="dv">30</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 364 x 32
+##    data.id data.activePlay~ data.assists data.firstName data.franchiseId
+##      &lt;int&gt; &lt;lgl&gt;                   &lt;int&gt; &lt;chr&gt;                     &lt;int&gt;
+##  1   18785 FALSE                       0 Joe                          30
+##  2   19225 FALSE                       0 Bobby                        30
+##  3   19982 FALSE                       1 Marc                         30
+##  4   22168 FALSE                       2 Steve                        30
+##  5   22256 FALSE                       1 Jim                          30
+##  6   22437 FALSE                       1 Dominic                      30
+##  7   22496 FALSE                       2 Stephen                      30
+##  8   22590 FALSE                       1 Francois                     30
+##  9   23076 FALSE                       3 Brad                         30
+## 10   23650 FALSE                       0 Brad                         30
+## # ... with 354 more rows, and 27 more variables: data.franchiseName &lt;chr&gt;,
+## #   data.gameTypeId &lt;int&gt;, data.gamesPlayed &lt;int&gt;, data.goals &lt;int&gt;,
+## #   data.lastName &lt;chr&gt;, data.mostAssistsGameDates &lt;chr&gt;,
+## #   data.mostAssistsOneGame &lt;int&gt;, data.mostAssistsOneSeason &lt;int&gt;,
+## #   data.mostAssistsSeasonIds &lt;chr&gt;, data.mostGoalsGameDates &lt;chr&gt;,
+## #   data.mostGoalsOneGame &lt;int&gt;, data.mostGoalsOneSeason &lt;int&gt;,
+## #   data.mostGoalsSeasonIds &lt;chr&gt;, data.mostPenaltyMinutesOneSeason &lt;int&gt;,
+## #   data.mostPenaltyMinutesSeasonIds &lt;chr&gt;,
+## #   data.mostPointsGameDates &lt;chr&gt;, data.mostPointsOneGame &lt;int&gt;,
+## #   data.mostPointsOneSeason &lt;int&gt;, data.mostPointsSeasonIds &lt;chr&gt;,
+## #   data.penaltyMinutes &lt;int&gt;, data.playerId &lt;int&gt;, data.points &lt;int&gt;,
+## #   data.positionCode &lt;chr&gt;, data.rookieGamesPlayed &lt;int&gt;,
+## #   data.rookiePoints &lt;int&gt;, data.seasons &lt;int&gt;, total &lt;int&gt;</code></pre>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose Franchise full name=&quot;New York Rangers&quot;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;skater-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;New York Rangers&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.activePlayer data.assists data.firstName data.franchiseId
-## 1   17208             FALSE            1           Doug               10
-## 2   17216             FALSE            0          Lloyd               10
-## 3   17230             FALSE            1           Bill               10
-## 4   17310             FALSE            0            Hub               10
-## 5   17360             FALSE            0            Ron               10
-## 6   17374             FALSE            4           Vern               10
-##   data.franchiseName data.gameTypeId data.gamesPlayed data.goals
-## 1   New York Rangers               2                4          0
-## 2   New York Rangers               2                3          0
-## 3   New York Rangers               2                1          0
-## 4   New York Rangers               2                2          0
-## 5   New York Rangers               2                4          0
-## 6   New York Rangers               2               28          0
-##   data.lastName
-## 1          Adam
-## 2        Ailsby
-## 3         Allum
-## 4        Anslow
-## 5       Attwell
-## 6         Ayres
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                data.mostAssistsGameDates
-## 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1950-02-09
-## 2 1951-10-14, 1951-10-18, 1951-10-20, 1951-10-21, 1951-10-24, 1951-10-28, 1951-10-29, 1951-11-01, 1951-11-03, 1951-11-04, 1951-11-07, 1951-11-11, 1951-11-14, 1951-11-17, 1951-11-18, 1951-11-21, 1951-11-22, 1951-11-25, 1951-11-27, 1951-11-28, 1951-12-01, 1951-12-02, 1951-12-05, 1951-12-09, 1951-12-11, 1951-12-12, 1951-12-15, 1951-12-16, 1951-12-19, 1951-12-23, 1951-12-25, 1951-12-26, 1951-12-29, 1951-12-30, 1952-01-01, 1952-01-02, 1952-01-06, 1952-01-09, 1952-01-10, 1952-01-13, 1952-01-16, 1952-01-17, 1952-01-20, 1952-01-22, 1952-01-26, 1952-01-27, 1952-01-31, 1952-02-03, 1952-02-07, 1952-02-09, 1952-02-10, 1952-02-13, 1952-02-16, 1952-02-17, 1952-02-19, 1952-02-20, 1952-02-24, 1952-02-27, 1952-02-28, 1952-03-01, 1952-03-02, 1952-03-04, 1952-03-06, 1952-03-09, 1952-03-12, 1952-03-15, 1952-03-16, 1952-03-19, 1952-03-20, 1952-03-23
-## 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1940-11-26
-## 4                                                                                                                         1947-10-16, 1947-10-19, 1947-10-22, 1947-10-29, 1947-11-01, 1947-11-02, 1947-11-06, 1947-11-08, 1947-11-09, 1947-11-12, 1947-11-15, 1947-11-16, 1947-11-19, 1947-11-22, 1947-11-30, 1947-12-03, 1947-12-06, 1947-12-07, 1947-12-10, 1947-12-11, 1947-12-13, 1947-12-14, 1947-12-17, 1947-12-21, 1947-12-23, 1947-12-25, 1947-12-28, 1947-12-31, 1948-01-01, 1948-01-03, 1948-01-04, 1948-01-07, 1948-01-10, 1948-01-11, 1948-01-14, 1948-01-18, 1948-01-21, 1948-01-25, 1948-01-28, 1948-01-31, 1948-02-01, 1948-02-04, 1948-02-07, 1948-02-08, 1948-02-14, 1948-02-16, 1948-02-18, 1948-02-22, 1948-02-25, 1948-02-29, 1948-03-02, 1948-03-03, 1948-03-06, 1948-03-07, 1948-03-10, 1948-03-13, 1948-03-14, 1948-03-16, 1948-03-17, 1948-03-21
-## 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1967-12-02, 1967-12-03, 1967-12-07, 1967-12-09, 1967-12-17, 1967-12-25
-## 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         1935-11-28, 1935-12-12, 1935-12-14, 1935-12-25
-##   data.mostAssistsOneGame data.mostAssistsOneSeason
-## 1                       1                         1
-## 2                       0                         0
-## 3                       1                         1
-## 4                       0                         0
-## 5                       0                         0
-## 6                       1                         4
-##   data.mostAssistsSeasonIds
-## 1                  19491950
-## 2                  19511952
-## 3                  19401941
-## 4                  19471948
-## 5                  19671968
-## 6                  19351936
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  data.mostGoalsGameDates
-## 1 1949-10-15, 1949-10-16, 1949-10-19, 1949-10-22, 1949-10-25, 1949-10-26, 1949-10-29, 1949-10-30, 1949-11-02, 1949-11-06, 1949-11-09, 1949-11-12, 1949-11-13, 1949-11-16, 1949-11-20, 1949-11-23, 1949-11-26, 1949-11-27, 1949-11-30, 1949-12-03, 1949-12-04, 1949-12-07, 1949-12-10, 1949-12-11, 1949-12-14, 1949-12-17, 1949-12-18, 1949-12-21, 1949-12-24, 1949-12-25, 1949-12-28, 1949-12-31, 1950-01-01, 1950-01-04, 1950-01-07, 1950-01-08, 1950-01-11, 1950-01-14, 1950-01-15, 1950-01-18, 1950-01-21, 1950-01-22, 1950-01-25, 1950-01-28, 1950-01-29, 1950-02-01, 1950-02-02, 1950-02-05, 1950-02-09, 1950-02-12, 1950-02-15, 1950-02-18, 1950-02-19, 1950-02-22, 1950-02-23, 1950-02-25, 1950-02-26, 1950-03-01, 1950-03-04, 1950-03-05, 1950-03-08, 1950-03-09, 1950-03-11, 1950-03-12, 1950-03-15, 1950-03-18, 1950-03-19, 1950-03-21, 1950-03-22, 1950-03-26
-## 2 1951-10-14, 1951-10-18, 1951-10-20, 1951-10-21, 1951-10-24, 1951-10-28, 1951-10-29, 1951-11-01, 1951-11-03, 1951-11-04, 1951-11-07, 1951-11-11, 1951-11-14, 1951-11-17, 1951-11-18, 1951-11-21, 1951-11-22, 1951-11-25, 1951-11-27, 1951-11-28, 1951-12-01, 1951-12-02, 1951-12-05, 1951-12-09, 1951-12-11, 1951-12-12, 1951-12-15, 1951-12-16, 1951-12-19, 1951-12-23, 1951-12-25, 1951-12-26, 1951-12-29, 1951-12-30, 1952-01-01, 1952-01-02, 1952-01-06, 1952-01-09, 1952-01-10, 1952-01-13, 1952-01-16, 1952-01-17, 1952-01-20, 1952-01-22, 1952-01-26, 1952-01-27, 1952-01-31, 1952-02-03, 1952-02-07, 1952-02-09, 1952-02-10, 1952-02-13, 1952-02-16, 1952-02-17, 1952-02-19, 1952-02-20, 1952-02-24, 1952-02-27, 1952-02-28, 1952-03-01, 1952-03-02, 1952-03-04, 1952-03-06, 1952-03-09, 1952-03-12, 1952-03-15, 1952-03-16, 1952-03-19, 1952-03-20, 1952-03-23
-## 3                                                                                                                                                                                                                                                                         1940-11-02, 1940-11-10, 1940-11-16, 1940-11-19, 1940-11-23, 1940-11-26, 1940-11-28, 1940-11-30, 1940-12-01, 1940-12-05, 1940-12-08, 1940-12-10, 1940-12-13, 1940-12-15, 1940-12-19, 1940-12-22, 1940-12-25, 1940-12-28, 1940-12-29, 1940-12-31, 1941-01-01, 1941-01-04, 1941-01-05, 1941-01-07, 1941-01-09, 1941-01-12, 1941-01-14, 1941-01-16, 1941-01-19, 1941-01-21, 1941-01-26, 1941-02-02, 1941-02-04, 1941-02-06, 1941-02-09, 1941-02-11, 1941-02-13, 1941-02-15, 1941-02-16, 1941-02-18, 1941-02-23, 1941-02-25, 1941-02-27, 1941-03-01, 1941-03-02, 1941-03-04, 1941-03-09, 1941-03-16
-## 4                                                                                                                         1947-10-16, 1947-10-19, 1947-10-22, 1947-10-29, 1947-11-01, 1947-11-02, 1947-11-06, 1947-11-08, 1947-11-09, 1947-11-12, 1947-11-15, 1947-11-16, 1947-11-19, 1947-11-22, 1947-11-30, 1947-12-03, 1947-12-06, 1947-12-07, 1947-12-10, 1947-12-11, 1947-12-13, 1947-12-14, 1947-12-17, 1947-12-21, 1947-12-23, 1947-12-25, 1947-12-28, 1947-12-31, 1948-01-01, 1948-01-03, 1948-01-04, 1948-01-07, 1948-01-10, 1948-01-11, 1948-01-14, 1948-01-18, 1948-01-21, 1948-01-25, 1948-01-28, 1948-01-31, 1948-02-01, 1948-02-04, 1948-02-07, 1948-02-08, 1948-02-14, 1948-02-16, 1948-02-18, 1948-02-22, 1948-02-25, 1948-02-29, 1948-03-02, 1948-03-03, 1948-03-06, 1948-03-07, 1948-03-10, 1948-03-13, 1948-03-14, 1948-03-16, 1948-03-17, 1948-03-21
-## 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1967-12-02, 1967-12-03, 1967-12-07, 1967-12-09, 1967-12-17, 1967-12-25
-## 6                                                                                                                                                                                                                                                                         1935-11-10, 1935-11-12, 1935-11-14, 1935-11-16, 1935-11-17, 1935-11-19, 1935-11-24, 1935-11-26, 1935-11-28, 1935-12-01, 1935-12-08, 1935-12-12, 1935-12-14, 1935-12-15, 1935-12-17, 1935-12-22, 1935-12-25, 1935-12-28, 1935-12-29, 1935-12-31, 1936-01-02, 1936-01-05, 1936-01-07, 1936-01-12, 1936-01-14, 1936-01-16, 1936-01-18, 1936-01-21, 1936-01-23, 1936-01-26, 1936-01-28, 1936-02-02, 1936-02-04, 1936-02-09, 1936-02-11, 1936-02-16, 1936-02-20, 1936-02-23, 1936-02-25, 1936-02-27, 1936-03-01, 1936-03-03, 1936-03-08, 1936-03-10, 1936-03-12, 1936-03-15, 1936-03-17, 1936-03-22
-##   data.mostGoalsOneGame data.mostGoalsOneSeason data.mostGoalsSeasonIds
-## 1                     0                       0                19491950
-## 2                     0                       0                19511952
-## 3                     0                       0                19401941
-## 4                     0                       0                19471948
-## 5                     0                       0                19671968
-## 6                     0                       0                19351936
-##   data.mostPenaltyMinutesOneSeason data.mostPenaltyMinutesSeasonIds
-## 1                                0                         19491950
-## 2                                2                         19511952
-## 3                                0                         19401941
-## 4                                0                         19471948
-## 5                                2                         19671968
-## 6                               38                         19351936
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data.mostPointsGameDates
-## 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1950-02-09
-## 2 1951-10-14, 1951-10-18, 1951-10-20, 1951-10-21, 1951-10-24, 1951-10-28, 1951-10-29, 1951-11-01, 1951-11-03, 1951-11-04, 1951-11-07, 1951-11-11, 1951-11-14, 1951-11-17, 1951-11-18, 1951-11-21, 1951-11-22, 1951-11-25, 1951-11-27, 1951-11-28, 1951-12-01, 1951-12-02, 1951-12-05, 1951-12-09, 1951-12-11, 1951-12-12, 1951-12-15, 1951-12-16, 1951-12-19, 1951-12-23, 1951-12-25, 1951-12-26, 1951-12-29, 1951-12-30, 1952-01-01, 1952-01-02, 1952-01-06, 1952-01-09, 1952-01-10, 1952-01-13, 1952-01-16, 1952-01-17, 1952-01-20, 1952-01-22, 1952-01-26, 1952-01-27, 1952-01-31, 1952-02-03, 1952-02-07, 1952-02-09, 1952-02-10, 1952-02-13, 1952-02-16, 1952-02-17, 1952-02-19, 1952-02-20, 1952-02-24, 1952-02-27, 1952-02-28, 1952-03-01, 1952-03-02, 1952-03-04, 1952-03-06, 1952-03-09, 1952-03-12, 1952-03-15, 1952-03-16, 1952-03-19, 1952-03-20, 1952-03-23
-## 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             1940-11-26
-## 4                                                                                                                         1947-10-16, 1947-10-19, 1947-10-22, 1947-10-29, 1947-11-01, 1947-11-02, 1947-11-06, 1947-11-08, 1947-11-09, 1947-11-12, 1947-11-15, 1947-11-16, 1947-11-19, 1947-11-22, 1947-11-30, 1947-12-03, 1947-12-06, 1947-12-07, 1947-12-10, 1947-12-11, 1947-12-13, 1947-12-14, 1947-12-17, 1947-12-21, 1947-12-23, 1947-12-25, 1947-12-28, 1947-12-31, 1948-01-01, 1948-01-03, 1948-01-04, 1948-01-07, 1948-01-10, 1948-01-11, 1948-01-14, 1948-01-18, 1948-01-21, 1948-01-25, 1948-01-28, 1948-01-31, 1948-02-01, 1948-02-04, 1948-02-07, 1948-02-08, 1948-02-14, 1948-02-16, 1948-02-18, 1948-02-22, 1948-02-25, 1948-02-29, 1948-03-02, 1948-03-03, 1948-03-06, 1948-03-07, 1948-03-10, 1948-03-13, 1948-03-14, 1948-03-16, 1948-03-17, 1948-03-21
-## 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 1967-12-02, 1967-12-03, 1967-12-07, 1967-12-09, 1967-12-17, 1967-12-25
-## 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         1935-11-28, 1935-12-12, 1935-12-14, 1935-12-25
-##   data.mostPointsOneGame data.mostPointsOneSeason data.mostPointsSeasonIds
-## 1                      1                        1                 19491950
-## 2                      0                        0                 19511952
-## 3                      1                        1                 19401941
-## 4                      0                        0                 19471948
-## 5                      0                        0                 19671968
-## 6                      1                        4                 19351936
-##   data.penaltyMinutes data.playerId data.points data.positionCode
-## 1                   0       8444860           1                 L
-## 2                   2       8444866           0                 D
-## 3                   0       8444875           1                 D
-## 4                   0       8444953           0                 C
-## 5                   2       8444985           0                 R
-## 6                  38       8444989           4                 D
-##   data.rookieGamesPlayed data.rookiePoints data.seasons total
-## 1                      4                 1            1   995
-## 2                      3                 0            1   995
-## 3                      1                 1            1   995
-## 4                      2                 0            1   995
-## 5                      4                 0            1   995
-## 6                     NA                NA            1   995</code></pre>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;skater-records&quot;</span>,<span class="st">&quot;franchiseId&quot;</span>,<span class="st">&quot;New York Rangers&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 995 x 32
+##    data.id data.activePlay~ data.assists data.firstName data.franchiseId
+##      &lt;int&gt; &lt;lgl&gt;                   &lt;int&gt; &lt;chr&gt;                     &lt;int&gt;
+##  1   17208 FALSE                       1 Doug                         10
+##  2   17216 FALSE                       0 Lloyd                        10
+##  3   17230 FALSE                       1 Bill                         10
+##  4   17310 FALSE                       0 Hub                          10
+##  5   17360 FALSE                       0 Ron                          10
+##  6   17374 FALSE                       4 Vern                         10
+##  7   17444 FALSE                       0 Cliff                        10
+##  8   17449 FALSE                       0 Frank                        10
+##  9   17467 FALSE                       1 Harry                        10
+## 10   17523 FALSE                       0 Bob                          10
+## # ... with 985 more rows, and 27 more variables: data.franchiseName &lt;chr&gt;,
+## #   data.gameTypeId &lt;int&gt;, data.gamesPlayed &lt;int&gt;, data.goals &lt;int&gt;,
+## #   data.lastName &lt;chr&gt;, data.mostAssistsGameDates &lt;chr&gt;,
+## #   data.mostAssistsOneGame &lt;int&gt;, data.mostAssistsOneSeason &lt;int&gt;,
+## #   data.mostAssistsSeasonIds &lt;chr&gt;, data.mostGoalsGameDates &lt;chr&gt;,
+## #   data.mostGoalsOneGame &lt;int&gt;, data.mostGoalsOneSeason &lt;int&gt;,
+## #   data.mostGoalsSeasonIds &lt;chr&gt;, data.mostPenaltyMinutesOneSeason &lt;int&gt;,
+## #   data.mostPenaltyMinutesSeasonIds &lt;chr&gt;,
+## #   data.mostPointsGameDates &lt;chr&gt;, data.mostPointsOneGame &lt;int&gt;,
+## #   data.mostPointsOneSeason &lt;int&gt;, data.mostPointsSeasonIds &lt;chr&gt;,
+## #   data.penaltyMinutes &lt;int&gt;, data.playerId &lt;int&gt;, data.points &lt;int&gt;,
+## #   data.positionCode &lt;chr&gt;, data.rookieGamesPlayed &lt;int&gt;,
+## #   data.rookiePoints &lt;int&gt;, data.seasons &lt;int&gt;, total &lt;int&gt;</code></pre>
 <h2 id="franchise-detail-records-by-mostrecentteamidid">franchise-detail records by mostRecentTeamId=ID</h2>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose ID=8</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="dv">8</span>))</span></code></pre></div>
-<pre><code>##   data.id data.active
-## 1       1        TRUE
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data.captainHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Shea Weber: 2018-19 &amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Max Pacioretty: 2015-16 &amp;ndash;&amp;nbsp;2017-18&lt;/li&gt;\r\n\t&lt;li&gt;(No Captain): 2014-15&lt;/li&gt;\r\n\t&lt;li&gt;Brian Gionta: 2010-11 &amp;ndash;&amp;nbsp;2013-14&lt;/li&gt;\r\n\t&lt;li&gt;(No Captain): 2009-10&lt;/li&gt;\r\n\t&lt;li&gt;Saku Koivu: 1999-00 &amp;ndash;&amp;nbsp;2008-09&lt;/li&gt;\r\n\t&lt;li&gt;Vincent Damphousse: 1997-98 &amp;ndash;&amp;nbsp;1998-99&lt;/li&gt;\r\n\t&lt;li&gt;Pierre Turgeon and Vincent Damphousse: 1996-97&lt;/li&gt;\r\n\t&lt;li&gt;Mike Keane and Pierre Turgeon: 1995-96&lt;/li&gt;\r\n\t&lt;li&gt;Kirk Muller and Mike Keane: 1994-95&lt;/li&gt;\r\n\t&lt;li&gt;Guy Carbonneau: 1990-91 &amp;ndash;&amp;nbsp;1993-94&lt;/li&gt;\r\n\t&lt;li&gt;Guy Carbonneau and Chris Chelios: 1989-90&lt;/li&gt;\r\n\t&lt;li&gt;Bob Gainey: 1981-82 &amp;ndash;&amp;nbsp;1988-89&lt;/li&gt;\r\n\t&lt;li&gt;Serge Savard: 1979-80 &amp;ndash;&amp;nbsp;1980-81&lt;/li&gt;\r\n\t&lt;li&gt;Yvan Cournoyer and Serge Savard: 1978-79&lt;/li&gt;\r\n\t&lt;li&gt;Yvan Cournoyer: 1975-76 &amp;ndash;&amp;nbsp;1977-78&lt;/li&gt;\r\n\t&lt;li&gt;Henri Richard: 1971-72 &amp;ndash;&amp;nbsp;1974-75&lt;/li&gt;\r\n\t&lt;li&gt;Jean Beliveau: 1961-62 &amp;ndash;&amp;nbsp;1970-71&lt;/li&gt;\r\n\t&lt;li&gt;Doug Harvey: 1960-61&lt;/li&gt;\r\n\t&lt;li&gt;Maurice Richard: 1956-57 &amp;ndash;&amp;nbsp;1959-60&lt;/li&gt;\r\n\t&lt;li&gt;Butch Bouchard: 1948-49 &amp;ndash;&amp;nbsp;1955-56&lt;/li&gt;\r\n\t&lt;li&gt;Toe Blake and Bill Durnan: 1947-48&lt;/li&gt;\r\n\t&lt;li&gt;Toe Blake: 1940-41 &amp;ndash;&amp;nbsp;1946-47&lt;/li&gt;\r\n\t&lt;li&gt;Walt Buswell: 1939-40&lt;/li&gt;\r\n\t&lt;li&gt;Babe Siebert: 1936-37 &amp;ndash;&amp;nbsp;1938-39&lt;/li&gt;\r\n\t&lt;li&gt;Sylvio Mantha: 1933-34 &amp;ndash;&amp;nbsp;1935-36&lt;/li&gt;\r\n\t&lt;li&gt;George Hainsworth: 1932-33&lt;/li&gt;\r\n\t&lt;li&gt;Sylvio Mantha: 1926-27 &amp;ndash;&amp;nbsp;1931-32&lt;/li&gt;\r\n\t&lt;li&gt;Bill Coutu: 1925-26&lt;/li&gt;\r\n\t&lt;li&gt;Sprague Cleghorn: 1922-23 &amp;ndash;&amp;nbsp;1924-25&lt;/li&gt;\r\n\t&lt;li&gt;Newsy Lalonde: 1916-17&amp;nbsp;&amp;ndash;&amp;nbsp;1921-22&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              data.coachingHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Dominique Ducharme: Feb. 25, 2021&amp;nbsp;&amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Claude Julien: Feb. 18, 2017 &amp;ndash; Feb. 23, 2021&lt;/li&gt;\r\n\t&lt;li&gt;Michel Therrien: Jan. 19, 2013 &amp;ndash; Feb. 12, 2017&lt;/li&gt;\r\n\t&lt;li&gt;Randy Cunneyworth: Dec. 17, 2011 &amp;ndash; April 7, 2012&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Martin: Oct. 1, 2009 &amp;ndash; Dec. 15, 2011&lt;/li&gt;\r\n\t&lt;li&gt;Bob Gainey: March 10&amp;nbsp;&amp;ndash; April 22, 2009&lt;/li&gt;\r\n\t&lt;li&gt;Guy Carbonneau: Oct. 6, 2006 &amp;ndash; March 8, 2009&lt;/li&gt;\r\n\t&lt;li&gt;Bob Gainey: Jan. 14&amp;nbsp;&amp;ndash; May 2, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Claude Julien: Jan. 18, 2003 &amp;ndash; Jan. 11, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Michel Therrien: Nov. 21, 2000 &amp;ndash; Jan. 16, 2003&lt;/li&gt;\r\n\t&lt;li&gt;Alain Vigneault: Oct. 1, 1997 &amp;ndash; Nov. 18, 2000&lt;/li&gt;\r\n\t&lt;li&gt;Mario Tremblay: Oct. 21, 1995 &amp;ndash; April 26, 1997&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Laperriere: Oct. 20, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Demers: Oct. 6, 1992 &amp;ndash; Oct. 14, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Pat Burns: Oct. 6, 1988 &amp;ndash; May 9, 1992&lt;/li&gt;\r\n\t&lt;li&gt;Jean Perron: Oct. 10, 1985 &amp;ndash; April 26, 1988&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Lemaire: Feb. 25, 1984 &amp;ndash; May 2, 1985&lt;/li&gt;\r\n\t&lt;li&gt;Bob Berry: Oct. 8, 1981 &amp;ndash; Feb. 23, 1984&lt;/li&gt;\r\n\t&lt;li&gt;Claude Ruel: Dec. 14, 1979 &amp;ndash; April 11, 1981&lt;/li&gt;\r\n\t&lt;li&gt;Bernie Geoffrion: Oct. 11&amp;nbsp;&amp;ndash; Dec. 11, 1979&lt;/li&gt;\r\n\t&lt;li&gt;Scotty Bowman: Oct. 9, 1971 &amp;ndash; May 21, 1979&lt;/li&gt;\r\n\t&lt;li&gt;Al MacNeil: Dec. 3, 1970 &amp;ndash; May 18, 1971&lt;/li&gt;\r\n\t&lt;li&gt;Claude Ruel: Oct. 12, 1968 &amp;ndash; Dec. 2, 1970&lt;/li&gt;\r\n\t&lt;li&gt;Toe Blake: Oct. 6, 1955 &amp;ndash; May 11, 1968&lt;/li&gt;\r\n\t&lt;li&gt;Dick Irvin: Nov. 3, 1940 &amp;ndash; April 14, 1955&lt;/li&gt;\r\n\t&lt;li&gt;Pit Lepine: Nov. 5, 1939 &amp;ndash; March 17, 1940&lt;/li&gt;\r\n\t&lt;li&gt;Jules Dugal: Jan. 29&amp;nbsp;&amp;ndash; March 26, 1939^&lt;/li&gt;\r\n\t&lt;li&gt;Cecil Hart: Nov. 7, 1936 &amp;ndash; Jan. 24, 1939&lt;/li&gt;\r\n\t&lt;li&gt;Sylvio Mantha: Nov. 12, 1935 &amp;ndash; March 19, 1936&lt;/li&gt;\r\n\t&lt;li&gt;Leo Dandurand: Jan. 1&amp;nbsp;&amp;ndash; March 26, 1935&lt;/li&gt;\r\n\t&lt;li&gt;Newsy Lalonde: Nov. 12, 1932 &amp;ndash; Dec. 29, 1934&lt;/li&gt;\r\n\t&lt;li&gt;Cecil Hart: Nov. 16, 1926 &amp;ndash; March 29, 1932&lt;/li&gt;\r\n\t&lt;li&gt;Leo Dandurand: Jan. 11, 1922 &amp;ndash; March 16, 1926&lt;/li&gt;\r\n\t&lt;li&gt;Newsy Lalonde: Dec. 19, 1917 &amp;ndash; Jan. 7, 1922&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last games coached during tenure (regular season or playoffs)&lt;/em&gt;&lt;/li&gt;\r\n\t&lt;li&gt;^ &lt;em&gt;The Canadiens named Babe Siebert head coach in the summer of 1939, but he died before the 1939-40 season began&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##      data.dateAwarded                                 data.directoryUrl
-## 1 1917-11-26T00:00:00 https://www.nhl.com/canadiens/team/administration
-##   data.firstSeasonId
-## 1           19171918
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data.generalManagerHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Marc Bergevin: May 2, 2012 &amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Pierre Gauthier: Feb. 8, 2010 &amp;ndash; March 29, 2012&lt;/li&gt;\r\n\t&lt;li&gt;Bob Gainey: June 2, 2003 &amp;ndash; Feb. 8, 2010&lt;/li&gt;\r\n\t&lt;li&gt;Andre Savard: Nov. 20, 2000 &amp;ndash; June 2, 2003&lt;/li&gt;\r\n\t&lt;li&gt;Rejean Houle: Oct. 21, 1995 &amp;ndash; Nov. 20, 2000&lt;/li&gt;\r\n\t&lt;li&gt;Serge Savard: April 28, 1983 &amp;ndash; Oct. 17, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Irving Grundman: Sept. 4, 1978 &amp;ndash; April 14, 1983&lt;/li&gt;\r\n\t&lt;li&gt;Sam Pollock: May 15, 1964 &amp;ndash; Sept. 4, 1978&lt;/li&gt;\r\n\t&lt;li&gt;Frank Selke: July 26, 1946 &amp;ndash; May 15, 1964&lt;/li&gt;\r\n\t&lt;li&gt;Tommy Gorman: April 8, 1940 &amp;ndash; July 26, 1946&lt;/li&gt;\r\n\t&lt;li&gt;Jules Dugal: Jan. 27, 1939 &amp;ndash; April 8, 1940&lt;/li&gt;\r\n\t&lt;li&gt;Cecil Hart: July 30, 1936 &amp;ndash; Jan. 27, 1939&lt;/li&gt;\r\n\t&lt;li&gt;Ernest Savard: Sept. 17, 1935 &amp;ndash; July 30, 1936&lt;/li&gt;\r\n\t&lt;li&gt;Leo Dandurand: Nov. 2, 1921 &amp;ndash; Sept. 17, 1935&lt;/li&gt;\r\n\t&lt;li&gt;George Kennedy: 1910 &amp;ndash; Oct. 19, 1921&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last days of tenure&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                             data.heroImageUrl
-## 1 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price.jpg
-##   data.mostRecentTeamId
-## 1                     8
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data.retiredNumbersSummary
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;1 &amp;ndash;&amp;nbsp;Jacques Plante (1952-63)&lt;/li&gt;\r\n\t&lt;li&gt;2 &amp;ndash;&amp;nbsp;Doug Harvey (1947-61)&lt;/li&gt;\r\n\t&lt;li&gt;3 &amp;ndash;&amp;nbsp;Butch Bouchard (1941-56)&lt;/li&gt;\r\n\t&lt;li&gt;4 &amp;ndash;&amp;nbsp;Jean Beliveau (1950-71)&lt;/li&gt;\r\n\t&lt;li&gt;5 &amp;ndash;&amp;nbsp;Bernie&amp;nbsp;Geoffrion (1950-64)&lt;/li&gt;\r\n\t&lt;li&gt;5 &amp;ndash;&amp;nbsp;Guy Lapointe (1968-82)&lt;/li&gt;\r\n\t&lt;li&gt;7 &amp;ndash;&amp;nbsp;Howie Morenz (1923-37)&lt;/li&gt;\r\n\t&lt;li&gt;9 &amp;ndash;&amp;nbsp;Maurice Richard (1942-60)&lt;/li&gt;\r\n\t&lt;li&gt;10 &amp;ndash;&amp;nbsp;Guy Lafleur (1971-84)&lt;/li&gt;\r\n\t&lt;li&gt;12 &amp;ndash;&amp;nbsp;Dickie Moore (1951-63)&lt;/li&gt;\r\n\t&lt;li&gt;12 &amp;ndash;&amp;nbsp;Yvan Cournoyer (1963-79)&lt;/li&gt;\r\n\t&lt;li&gt;16 &amp;ndash;&amp;nbsp;Elmer Lach (1940-54)&lt;/li&gt;\r\n\t&lt;li&gt;16 &amp;ndash;&amp;nbsp;Henri Richard (1955-75)&lt;/li&gt;\r\n\t&lt;li&gt;18 &amp;ndash;&amp;nbsp;Serge Savard (1966-81)&lt;/li&gt;\r\n\t&lt;li&gt;19 &amp;ndash;&amp;nbsp;Larry Robinson (1972-89)&lt;/li&gt;\r\n\t&lt;li&gt;23 &amp;ndash;&amp;nbsp;Bob Gainey (1973-89)&lt;/li&gt;\r\n\t&lt;li&gt;29 &amp;ndash;&amp;nbsp;Ken Dryden (1970-79)&lt;/li&gt;\r\n\t&lt;li&gt;33 &amp;ndash;&amp;nbsp;Patrick Roy (1984-95)&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##   data.teamAbbrev  data.teamFullName total
-## 1             MTL Montréal Canadiens     1</code></pre>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="dv">8</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 14
+##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
+##     &lt;int&gt; &lt;lgl&gt;       &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;           
+## 1       1 TRUE        &quot;Shea Weber: 20~ &quot;Dominique Duch~ 1917-11-26T00:0~
+## # ... with 9 more variables: data.directoryUrl &lt;chr&gt;,
+## #   data.firstSeasonId &lt;int&gt;, data.generalManagerHistory &lt;chr&gt;,
+## #   data.heroImageUrl &lt;chr&gt;, data.mostRecentTeamId &lt;int&gt;,
+## #   data.retiredNumbersSummary &lt;chr&gt;, data.teamAbbrev &lt;chr&gt;,
+## #   data.teamFullName &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose Franchise full name=&quot;New York Islanders&quot;</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="st">&quot;New York Islanders&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.active
-## 1      22        TRUE
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   data.captainHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Anders Lee: 2018-19 &amp;ndash;&amp;nbsp;Present&lt;/li&gt;\r\n\t&lt;li&gt;John Tavares: 2013-14 &amp;ndash;&amp;nbsp;2017-18&lt;/li&gt;\r\n\t&lt;li&gt;Mark Streit: 2011-12 &amp;ndash;&amp;nbsp;2012-13&lt;/li&gt;\r\n\t&lt;li&gt;Doug Weight: 2009-10 &amp;ndash;&amp;nbsp;2010-11&lt;/li&gt;\r\n\t&lt;li&gt;Bill Guerin and (No Captain): 2008-09&lt;/li&gt;\r\n\t&lt;li&gt;Bill Guerin: 2007-08&lt;/li&gt;\r\n\t&lt;li&gt;Alexei Yashin: 2005-06 &amp;ndash;&amp;nbsp;2006-07&lt;/li&gt;\r\n\t&lt;li&gt;Michael Peca: 2001-02 &amp;ndash;&amp;nbsp;2003-04&lt;/li&gt;\r\n\t&lt;li&gt;Kenny Jonsson: 1999-00 &amp;ndash;&amp;nbsp;2000-01&lt;/li&gt;\r\n\t&lt;li&gt;Trevor Linden: 1998-99&lt;/li&gt;\r\n\t&lt;li&gt;Bryan McCabe and Trevor Linden: 1997-98&lt;/li&gt;\r\n\t&lt;li&gt;(No Captain): 1996-97&lt;/li&gt;\r\n\t&lt;li&gt;Patrick Flatley: 1992-93 &amp;ndash;&amp;nbsp;1995-96&lt;/li&gt;\r\n\t&lt;li&gt;Brent Sutter and Patrick Flatley: 1991-92&lt;/li&gt;\r\n\t&lt;li&gt;Brent Sutter: 1987-88 &amp;ndash;&amp;nbsp;1990-91&lt;/li&gt;\r\n\t&lt;li&gt;Denis Potvin: 1979-80 &amp;ndash;&amp;nbsp;1986-87&lt;/li&gt;\r\n\t&lt;li&gt;Clark Gillies: 1977-78 &amp;ndash;&amp;nbsp;1978-79&lt;/li&gt;\r\n\t&lt;li&gt;Ed Westfall and Clark Gillies: 1976-77&lt;/li&gt;\r\n\t&lt;li&gt;Ed Westfall: 1972-73 &amp;ndash;&amp;nbsp;1975-76&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    data.coachingHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Barry Trotz: Oct. 4, 2018 &amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Doug Weight: Jan. 19, 2017 &amp;ndash; April 7, 2018&lt;/li&gt;\r\n\t&lt;li&gt;Jack Capuano: Nov. 17, 2010 &amp;ndash; Jan. 16, 2017&lt;/li&gt;\r\n\t&lt;li&gt;Scott Gordon: Oct. 10, 2008 &amp;ndash; Nov. 13, 2010&lt;/li&gt;\r\n\t&lt;li&gt;Ted Nolan: Nov. 3, 2007 &amp;ndash; April 4, 2008&lt;/li&gt;\r\n\t&lt;li&gt;Al Arbour: Nov. 1, 2007&lt;/li&gt;\r\n\t&lt;li&gt;Ted Nolan: Oct. 5, 2006 &amp;ndash; Oct. 27, 2007&lt;/li&gt;\r\n\t&lt;li&gt;Brad Shaw: Jan. 12&amp;nbsp;&amp;ndash; April 18, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Steve Stirling: Oct. 9, 2003 &amp;ndash; Jan. 10, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Peter Laviolette: Oct. 5, 2001 &amp;ndash; April 17, 2003&lt;/li&gt;\r\n\t&lt;li&gt;Lorne Henning: March 5&amp;nbsp;&amp;ndash; April 7, 2001&lt;/li&gt;\r\n\t&lt;li&gt;Butch Goring: Oct. 2, 1999 &amp;ndash; March 3, 2001&lt;/li&gt;\r\n\t&lt;li&gt;Bill Stewart: Jan. 21&amp;nbsp;&amp;ndash; April 17, 1999&lt;/li&gt;\r\n\t&lt;li&gt;Mike Milbury: March 12, 1998 &amp;ndash; Jan. 20, 1999&lt;/li&gt;\r\n\t&lt;li&gt;Rick Bowness: Jan. 24, 1997 &amp;ndash; March 10, 1998&lt;/li&gt;\r\n\t&lt;li&gt;Mike Milbury: Oct. 7, 1995 &amp;ndash; Jan. 22, 1997&lt;/li&gt;\r\n\t&lt;li&gt;Lorne Henning: Jan. 21&amp;nbsp;&amp;ndash; May 2, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Al Arbour: Dec. 9, 1988 &amp;ndash; April 24, 1994&lt;/li&gt;\r\n\t&lt;li&gt;Terry Simpson: Oct. 9, 1986 &amp;ndash; Dec. 6, 1988&lt;/li&gt;\r\n\t&lt;li&gt;Al Arbour: Oct. 10, 1973 &amp;ndash; April 12, 1986&lt;/li&gt;\r\n\t&lt;li&gt;Earl Ingarfield: Jan. 31&amp;nbsp;&amp;ndash; April 1, 1973&lt;/li&gt;\r\n\t&lt;li&gt;Phil Goyette: Oct. 7, 1972 &amp;ndash; Jan. 26, 1973&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last games coached during tenure (regular season or playoffs)&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##      data.dateAwarded
-## 1 1972-06-06T00:00:00
-##                                       data.directoryUrl data.firstSeasonId
-## 1 https://www.nhl.com/islanders/team/business-directory           19721973
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               data.generalManagerHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Lou Lamoriello: June 5, 2018 &amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Garth Snow: July 18, 2006 &amp;ndash; June 5, 2018&lt;/li&gt;\r\n\t&lt;li&gt;Neil Smith: June 6&amp;nbsp;&amp;ndash; July 18, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Mike Milbury: Dec. 12, 1995 &amp;ndash; June 6, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Darcy Regier: Dec. 2-12, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Don Maloney: Aug. 17, 1992 &amp;ndash; Dec. 2, 1995&lt;/li&gt;\r\n\t&lt;li&gt;Bill Torrey: Feb. 14, 1972 &amp;ndash; Aug. 17, 1992&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last days of tenure&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                              data.heroImageUrl
-## 1 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/NYI/Barzal.jpg
-##   data.mostRecentTeamId
-## 1                     2
-##                                                                                                                                                                                                                                                                                                                                                                                                                                              data.retiredNumbersSummary
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;5 &amp;ndash;&amp;nbsp;Denis Potvin (1973-88)&lt;/li&gt;\r\n\t&lt;li&gt;9 &amp;ndash;&amp;nbsp;Clark Gillies (1974-86)&lt;/li&gt;\r\n\t&lt;li&gt;19 &amp;ndash;&amp;nbsp;Bryan Trottier (1975-90)&lt;/li&gt;\r\n\t&lt;li&gt;22 &amp;ndash;&amp;nbsp;Mike Bossy (1977-87)&lt;/li&gt;\r\n\t&lt;li&gt;23 &amp;ndash;&amp;nbsp;Bobby Nystrom (1972-86)&lt;/li&gt;\r\n\t&lt;li&gt;27 &amp;ndash;&amp;nbsp;John Tonelli (1978-86)&lt;/li&gt;\r\n\t&lt;li&gt;31 &amp;ndash;&amp;nbsp;Billy Smith (1972-89)&lt;/li&gt;\r\n\t&lt;li&gt;91 &amp;ndash;&amp;nbsp;Butch Goring (1980-84)&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##   data.teamAbbrev  data.teamFullName total
-## 1             NYI New York Islanders     1</code></pre>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="st">&quot;New York Islanders&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 14
+##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
+##     &lt;int&gt; &lt;lgl&gt;       &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;           
+## 1      22 TRUE        &quot;Anders Lee: 20~ &quot;Barry Trotz: O~ 1972-06-06T00:0~
+## # ... with 9 more variables: data.directoryUrl &lt;chr&gt;,
+## #   data.firstSeasonId &lt;int&gt;, data.generalManagerHistory &lt;chr&gt;,
+## #   data.heroImageUrl &lt;chr&gt;, data.mostRecentTeamId &lt;int&gt;,
+## #   data.retiredNumbersSummary &lt;chr&gt;, data.teamAbbrev &lt;chr&gt;,
+## #   data.teamFullName &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <h2 id="team-stat-modifier">Team Stat modifier</h2>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose all ID</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;stat&quot;</span>,<span class="st">&quot;teams&quot;</span>))</span></code></pre></div>
-<pre><code>## # A tibble: 6 x 66
-##   copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
-##   &lt;fct&gt;        &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt;         
-## 1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-## 2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-## 3 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
-## 4 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
-## 5 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
-## 6 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
-## # ... with 60 more variables: teams.locationName &lt;chr&gt;,
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;stat&quot;</span>,<span class="st">&quot;teams&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 62 x 66
+##    copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
+##    &lt;fct&gt;        &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt;         
+##  1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
+##  2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
+##  3 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
+##  4 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
+##  5 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
+##  6 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
+##  7 NHL and ~        4 Philadelp~ /api/v1/t~ PHI              Flyers        
+##  8 NHL and ~        4 Philadelp~ /api/v1/t~ PHI              Flyers        
+##  9 NHL and ~        5 Pittsburg~ /api/v1/t~ PIT              Penguins      
+## 10 NHL and ~        5 Pittsburg~ /api/v1/t~ PIT              Penguins      
+## # ... with 52 more rows, and 60 more variables: teams.locationName &lt;chr&gt;,
 ## #   teams.firstYearOfPlay &lt;chr&gt;, stat.gamesPlayed &lt;int&gt;, stat.wins &lt;chr&gt;,
 ## #   stat.losses &lt;chr&gt;, stat.ot &lt;chr&gt;, stat.pts &lt;chr&gt;, stat.ptPctg &lt;chr&gt;,
 ## #   stat.goalsPerGame &lt;chr&gt;, stat.goalsAgainstPerGame &lt;chr&gt;,
@@ -742,7 +467,7 @@ body {
 ## #   teams.conference.link &lt;chr&gt;, teams.franchise.franchiseId &lt;int&gt;,
 ## #   teams.franchise.teamName &lt;chr&gt;, teams.franchise.link &lt;chr&gt;</code></pre>
 <div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose ID=1</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;stat&quot;</span>,<span class="st">&quot;teams&quot;</span>,<span class="dv">1</span>))</span></code></pre></div>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;stat&quot;</span>,<span class="st">&quot;teams&quot;</span>,<span class="dv">1</span>))</span></code></pre></div>
 <pre><code>## # A tibble: 2 x 65
 ##   copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
 ##   &lt;fct&gt;        &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;            &lt;chr&gt;         
@@ -776,27 +501,16 @@ body {
 ## #   teams.conference.link &lt;chr&gt;, teams.franchise.franchiseId &lt;int&gt;,
 ## #   teams.franchise.teamName &lt;chr&gt;, teams.franchise.link &lt;chr&gt;</code></pre>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I choose Franchise full name=&quot;New Jersey Devils&quot;</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="st">&quot;New Jersey Devils&quot;</span>))</span></code></pre></div>
-<pre><code>##   data.id data.active
-## 1      23        TRUE
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  data.captainHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;(No Captain) and Nico Hischier: 2020-21&lt;/li&gt;\r\n\t&lt;li&gt;Andy Greene and (No Captain): 2019-20&lt;/li&gt;\r\n\t&lt;li&gt;Andy Greene: 2015-16 &amp;ndash;&amp;nbsp;2018-19&lt;/li&gt;\r\n\t&lt;li&gt;Bryce Salvador: 2012-13 &amp;ndash;&amp;nbsp;2014-15&lt;/li&gt;\r\n\t&lt;li&gt;Zach Parise: 2011-12&lt;/li&gt;\r\n\t&lt;li&gt;Jamie Langenbrunner: 2008-09 &amp;ndash;&amp;nbsp;2010-11&lt;/li&gt;\r\n\t&lt;li&gt;Patrik Elias and Jamie Langenbrunner: 2007-08&lt;/li&gt;\r\n\t&lt;li&gt;Patrik Elias: 2006-07&lt;/li&gt;\r\n\t&lt;li&gt;(No Captain): 2005-06&lt;/li&gt;\r\n\t&lt;li&gt;Scott Stevens and Scott Niedermayer: 2003-04&lt;/li&gt;\r\n\t&lt;li&gt;Scott Stevens: 1992-93 &amp;ndash;&amp;nbsp;2002-03&lt;/li&gt;\r\n\t&lt;li&gt;Bruce Driver: 1991-92&lt;/li&gt;\r\n\t&lt;li&gt;Kirk Muller: 1987-88 &amp;ndash;&amp;nbsp;1990-91&lt;/li&gt;\r\n\t&lt;li&gt;Mel Bridgman: 1984-85 &amp;ndash;&amp;nbsp;1986-87&lt;/li&gt;\r\n\t&lt;li&gt;Don Lever and Mel Bridgman: 1983-84&lt;/li&gt;\r\n\t&lt;li&gt;Don Lever: 1982-83&lt;/li&gt;\r\n\t&lt;li&gt;Lanny McDonald and Rob Ramage: 1981-82&lt;/li&gt;\r\n\t&lt;li&gt;Lanny McDonald: 1980-81&lt;/li&gt;\r\n\t&lt;li&gt;Mike Christie, Rene Robert and Lanny McDonald: 1979-80&lt;/li&gt;\r\n\t&lt;li&gt;Gary Croteau: 1978-79&lt;/li&gt;\r\n\t&lt;li&gt;Wilf Paiement: 1977-78&lt;/li&gt;\r\n\t&lt;li&gt;Simon Nolet: 1974-75 &amp;ndash;&amp;nbsp;1976-77&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       data.coachingHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Lindy Ruff: Present&lt;/li&gt;\r\n\t&lt;li&gt;Alain Nasreddine: Dec. 3, 2019 &amp;ndash; March 10, 2020&lt;/li&gt;\r\n\t&lt;li&gt;John Hynes: Oct. 9, 2015 &amp;ndash; Dec. 2, 2019&lt;/li&gt;\r\n\t&lt;li&gt;Peter DeBoer: Oct. 8, 2011 &amp;ndash; Dec. 23, 2014&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Lemaire: Dec. 23, 2010 &amp;ndash; April 10, 2011&lt;/li&gt;\r\n\t&lt;li&gt;John MacLean: Oct. 8&amp;nbsp;&amp;ndash; Dec. 21, 2010&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Lemaire: Oct. 3, 2009 &amp;ndash; April 22, 2010&lt;/li&gt;\r\n\t&lt;li&gt;Brent Sutter: Oct. 4, 2007 &amp;ndash; April 28, 2009&lt;/li&gt;\r\n\t&lt;li&gt;Lou Lamoriello: April 3&amp;nbsp;&amp;ndash; May 5, 2007&lt;/li&gt;\r\n\t&lt;li&gt;Claude Julien: Oct. 6, 2006 &amp;ndash; April 1, 2007&lt;/li&gt;\r\n\t&lt;li&gt;Lou Lamoriello: Dec. 20, 2005 &amp;ndash; May 14, 2006&lt;/li&gt;\r\n\t&lt;li&gt;Larry Robinson: Oct. 5&amp;nbsp;&amp;ndash; Dec. 17, 2005&lt;/li&gt;\r\n\t&lt;li&gt;Pat Burns: Oct. 10, 2002 &amp;ndash; April 17, 2004&lt;/li&gt;\r\n\t&lt;li&gt;Kevin Constantine: Jan. 29&amp;nbsp;&amp;ndash; April 27, 2002&lt;/li&gt;\r\n\t&lt;li&gt;Larry Robinson: March 24, 2000 &amp;ndash; Jan. 26, 2002&lt;/li&gt;\r\n\t&lt;li&gt;Robbie Ftorek: Oct. 10, 1998 &amp;ndash; March 21, 2000&lt;/li&gt;\r\n\t&lt;li&gt;Jacques Lemaire: Oct. 6, 1993 &amp;ndash; May 2, 1998&lt;/li&gt;\r\n\t&lt;li&gt;Herb Brooks: Oct. 6, 1992 &amp;ndash; April 26, 1993&lt;/li&gt;\r\n\t&lt;li&gt;Tom McVie: March 5, 1991 &amp;ndash; May 1, 1992&lt;/li&gt;\r\n\t&lt;li&gt;John Cunniff: Nov. 8, 1989 &amp;ndash; March 3, 1991&lt;/li&gt;\r\n\t&lt;li&gt;Jim Schoenfeld: Jan. 28, 1988 &amp;ndash; Nov. 4, 1989&lt;/li&gt;\r\n\t&lt;li&gt;Doug Carpenter: Oct. 12, 1984 &amp;ndash; Jan. 25, 1988&lt;/li&gt;\r\n\t&lt;li&gt;Tom McVie: Nov. 23, 1983 &amp;ndash; April 1, 1984&lt;/li&gt;\r\n\t&lt;li&gt;Bill MacMillan: Oct. 5, 1982 &amp;ndash; Nov. 19, 1983&lt;/li&gt;\r\n\t&lt;li&gt;Marshall Johnston: Nov. 30, 1981 &amp;ndash; April 3, 1982&lt;/li&gt;\r\n\t&lt;li&gt;Bert Marshall: Oct. 6&amp;nbsp;&amp;ndash; Nov. 28, 1981&lt;/li&gt;\r\n\t&lt;li&gt;Bill MacMillan: Oct. 11, 1980 &amp;ndash; April 4, 1981&lt;/li&gt;\r\n\t&lt;li&gt;Don Cherry: Oct. 11, 1979 &amp;ndash; April 6, 1980&lt;/li&gt;\r\n\t&lt;li&gt;Aldo Guidolin: Nov. 25, 1978 &amp;ndash; April 8, 1979&lt;/li&gt;\r\n\t&lt;li&gt;Pat Kelly: Oct. 14, 1977 &amp;ndash; Nov. 23, 1978&lt;/li&gt;\r\n\t&lt;li&gt;Johnny Wilson: Oct. 5, 1976 &amp;ndash; April 3, 1977&lt;/li&gt;\r\n\t&lt;li&gt;Eddie Bush: Jan. 28&amp;nbsp;&amp;ndash; April 4, 1976&lt;/li&gt;\r\n\t&lt;li&gt;Sid Abel: Jan. 21-25, 1976&lt;/li&gt;\r\n\t&lt;li&gt;Bep Guidolin: Oct. 9, 1974 &amp;ndash; Jan. 17, 1976&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last games coached during tenure (regular season or playoffs)&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##      data.dateAwarded                               data.directoryUrl
-## 1 1974-06-11T00:00:00 https://www.nhl.com/devils/team/staff-directory
-##   data.firstSeasonId
-## 1           19741975
-##                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data.generalManagerHistory
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;Tom Fitzgerald: Jan. 12, 2020 &amp;ndash; Present&lt;/li&gt;\r\n\t&lt;li&gt;Ray Shero: May 4, 2015 &amp;ndash; Jan. 12, 2020&lt;/li&gt;\r\n\t&lt;li&gt;Lou Lamoriello: Sept. 10, 1987 &amp;ndash; May 4, 2015&lt;/li&gt;\r\n\t&lt;li&gt;Max McNab: Nov. 22, 1983 &amp;ndash; Sept. 10, 1987&lt;/li&gt;\r\n\t&lt;li&gt;Bill MacMillan: May 4, 1981 &amp;ndash; Nov. 22, 1983&lt;/li&gt;\r\n\t&lt;li&gt;Ray Miron: Aug. 23, 1976 &amp;ndash; May 1, 1981&lt;/li&gt;\r\n\t&lt;li&gt;Baz Bastien: Feb. 14&amp;nbsp;&amp;ndash; April 5, 1976&lt;/li&gt;\r\n\t&lt;li&gt;Sid Abel: June 1, 1973 &amp;ndash; Feb. 13, 1976&lt;/li&gt;\r\n\t&lt;li&gt;* &lt;em&gt;Date range indicates first and last days of tenure&lt;/em&gt;&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##                                                              data.heroImageUrl
-## 1 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/NJD/Subban.jpg
-##   data.mostRecentTeamId
-## 1                     1
-##                                                                                                                                                                                                                                                                                        data.retiredNumbersSummary
-## 1 &lt;ul class=&quot;striped-list&quot;&gt;\r\n\t&lt;li&gt;3 &amp;ndash;&amp;nbsp;Ken Daneyko (1982-03)&lt;/li&gt;\r\n\t&lt;li&gt;4 &amp;ndash;&amp;nbsp;Scott Stevens (1991-05)&lt;/li&gt;\r\n\t&lt;li&gt;26 &amp;ndash;&amp;nbsp;Patrik Elias (1996-16)&lt;/li&gt;\r\n\t&lt;li&gt;27 &amp;ndash;&amp;nbsp;Scott Niedermayer (1991-04)&lt;/li&gt;\r\n\t&lt;li&gt;30 &amp;ndash;&amp;nbsp;Martin Brodeur (1992-14)&lt;/li&gt;\r\n&lt;/ul&gt;\r\n
-##   data.teamAbbrev data.teamFullName total
-## 1             NJD New Jersey Devils     1</code></pre>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">as.tbl</span>(<span class="fu">wrapfnc</span>(<span class="st">&quot;record&quot;</span>,<span class="st">&quot;franchise&quot;</span>,<span class="st">&quot;detail&quot;</span>,<span class="st">&quot;mostRecentTeamId&quot;</span>,<span class="st">&quot;New Jersey Devils&quot;</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 14
+##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
+##     &lt;int&gt; &lt;lgl&gt;       &lt;chr&gt;            &lt;chr&gt;            &lt;chr&gt;           
+## 1      23 TRUE        &quot;(No Captain) a~ &quot;Lindy Ruff: Pr~ 1974-06-11T00:0~
+## # ... with 9 more variables: data.directoryUrl &lt;chr&gt;,
+## #   data.firstSeasonId &lt;int&gt;, data.generalManagerHistory &lt;chr&gt;,
+## #   data.heroImageUrl &lt;chr&gt;, data.mostRecentTeamId &lt;int&gt;,
+## #   data.retiredNumbersSummary &lt;chr&gt;, data.teamAbbrev &lt;chr&gt;,
+## #   data.teamFullName &lt;chr&gt;, total &lt;int&gt;</code></pre>
 <h1 id="getting-basic-ideas">Getting basic ideas</h1>
 <h2 id="choose-two-franchises-to-compare-with">Choose two franchises to compare with</h2>
 <div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Look for interesting results from &#39;team-total&#39; dataset. </span></span>
@@ -1219,7 +933,7 @@ ID.20
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a graph to see the relationship between assists and goals</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>sk <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cosk, <span class="fu">aes</span>(<span class="at">x=</span>data.assists, <span class="at">y=</span>data.goals))</span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>sk<span class="sc">+</span><span class="fu">geom_jitter</span>(<span class="fu">aes</span>(<span class="at">color=</span>data.franchiseId))<span class="sc">+</span><span class="fu">labs</span>(<span class="at">x=</span><span class="st">&quot;Assists&quot;</span>,<span class="at">y=</span><span class="st">&quot;Goals&quot;</span>,<span class="at">color=</span><span class="st">&quot;Franchise ID&quot;</span>,<span class="at">title=</span><span class="st">&quot;&lt; Assists and Goals &gt;&quot;</span>)</span></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>The franchise ID=1 had more average assists and higher winning chance than ID=20 did. This graph also tells us the relationship between assists and goals is linear. So, we can say <strong>more assists leads higher chance of winning!</strong></p>
 <h2 id="how-center-position-skaters-penalty-time-affect-goal">How center position skater’s penalty time affect goal?</h2>
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarise center position skater&#39;s penalty minutes records</span></span>
