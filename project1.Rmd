@@ -105,7 +105,26 @@ a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 &
   mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
 knitr::kable(a)
 ```
+
 ID=1 had higher chance of win than ID=20 had. Let's find the factors which affect team winning!    
+
+## Goals by skater position  
+```{r}
+library(ggplot2)
+skr <- wrapfnc("record","franchise","skater-records")
+p <- ggplot(skr,aes(x=data.positionCode,y=data.goals,fill=data.positionCode))
+p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="Goals by Position")
+```
+
+Center position skater scored most goals and then right winger did. That makes sense!  
+
+## Assists by skater position  
+```{r}
+a <- ggplot(skr,aes(x=data.positionCode, y=data.assists, fill=data.positionCode))
+a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="Assists by Position")
+```
+
+Center players assisted most and then Defenders did. I guessed wingers assisted most but the data tells different story. Interesting!!  
 
 ## How skater assists affect winning?  
 ```{r}
@@ -121,10 +140,10 @@ cosk$data.franchiseId <- as.character(cosk$data.franchiseId)
 avgassi <- c(ID.1=mean(skid1$data.assists),ID.20=mean(skid20$data.assists))
 knitr::kable(avgassi,col.names = "Avg Assists")
 ```
+
 We can see Franchise ID=1 had more average assists from the data.  
 
 ```{r}
-library(ggplot2)
 # Create a graph to see the relationship between assists and goals
 sk <- ggplot(cosk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
@@ -140,6 +159,7 @@ centerpt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
 centerpt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
   labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
 ```
+
 The skaters who are in a center position scored more goals as they had more penalty minutes. What?? Interesting!  
 
 ```{r}
@@ -151,3 +171,22 @@ w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes a
 ```
   
 What a surprising result!! I thought the penalty minutes would affects goals and winnings in negative ways, but the graphs tell us totally opposite story.  
+
+## IS playing at Home really an advantage?  
+```{r}
+hwratio <- ttotal %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
+  select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
+knitr::kable(hwratio)
+r <- ggplot(hwratio,aes(x=HomeWin.ratio))
+r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
+```
+
+All teams had over 50% of winning chance when they played at home. Playing at Home really an advantage!!  
+
+## Stat  
+```{r}
+stat <- wrapfnc("stat","teams")
+# PIck odd number rows
+stat <- stat[seq(1,62,2),]
+
+```
