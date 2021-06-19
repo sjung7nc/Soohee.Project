@@ -12,19 +12,24 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # FUNCTIONS  
-## Record-API Functions  
-
-```{r message=FALSE}
+## Required Packages  
+```{r}
 library(httr)
 library(jsonlite)
 library(tidyverse)
+library(ggplot2)
+```
 
+## Record-API Functions  
+
+```{r message=FALSE}
 # to get the franchise ids and the team names
 frurl <- GET("https://records.nhl.com/site/api/franchise")
 frtext <- content(frurl, "text", encoding = "UTF-8")
 frlist <- fromJSON(frtext, flatten=TRUE)
 frlist <- as.data.frame(frlist)
-frtbl <- tibble(frlist$data.id, frlist$data.fullName)
+frtbl <- tibble(frlist$data.id, frlist$data.fullName, frlist$data.mostRecentTeamId)
+head(frtbl)
 
 # record API function
 rcdURL <- function(list,recd,type,id){
@@ -36,11 +41,17 @@ rcdURL <- function(list,recd,type,id){
   }
   else {
     if (is.numeric(id)){
-      rcdurl <- paste0("https://records.nhl.com/site/api/franchise","-",recd,"?cayenneExp=", type, "=", id)
+      rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
     }
     else {
-      id <- filter(filter(frtbl,frtbl[2]==id)[1])
-      rcdurl <- paste0("https://records.nhl.com/site/api/franchise","-",recd,"?cayenneExp=", type, "=", id)
+      if (type=="mostRecentTeamId"){
+        id <- filter(filter(frtbl,frtbl[2]==id)[3])
+        rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
+      }
+      else {
+        id <- filter(filter(frtbl,frtbl[2]==id)[1])
+        rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
+      }
     }
   }
   return(rcdurl)
@@ -97,7 +108,60 @@ wrapfnc <- function(fnc,list,...){
 }
 ```
 
-# FACTORS WHICH INFLUENCE TEAM WINNING  
+# Preview of Data  
+## Franchise Records  
+```{r}
+head(wrapfnc("record","franchise"))
+```
+
+## Franchise-team-totals Records  
+```{r}
+head(wrapfnc("record","franchise","team-totals"))
+```
+
+## franchise-season-records by franchiseId=ID  
+```{r}
+# I choose ID=10
+head(wrapfnc("record","franchise","season-records","franchiseId",10))
+# I choose Franchise full name="New Jersey Devils"
+head(wrapfnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+```
+
+## franchise-goalie-records by franchiseId=ID  
+```{r}
+# I choose ID=20
+head(wrapfnc("record","franchise","goalie-records","franchiseId",20))
+# I choose Franchise full name="Philadelphia Flyers"
+head(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+```
+
+## franchise-skater-records by franchiseId=ID  
+```{r}
+# I choose ID=30
+head(wrapfnc("record","franchise","skater-records","franchiseId",30))
+# I choose Franchise full name="New York Rangers"
+head(wrapfnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+```
+
+## franchise-detail records by mostRecentTeamId=ID  
+```{r}
+# I choose ID=8
+head(wrapfnc("record","franchise","detail","mostRecentTeamId",8))
+# I choose Franchise full name="New York Islanders"
+head(wrapfnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+```
+
+## Team Stat modifier  
+```{r}
+# I choose all ID
+head(wrapfnc("stat","teams"))
+# I choose ID=1
+head(wrapfnc("stat","teams",1))
+# I choose Franchise full name="New Jersey Devils"
+head(wrapfnc("record","franchise","detail","mostRecentTeamId","New Jersey Devils"))
+```
+
+# Getting basic ideas  
 ## Choose two franchises to compare with  
 ```{r}
 # Look for interesting results from 'team-total' dataset. 
@@ -110,10 +174,9 @@ ID=1 had higher chance of win than ID=20 had. Let's find the factors which affec
 
 ## Goals by skater position  
 ```{r}
-library(ggplot2)
 skr <- wrapfnc("record","franchise","skater-records")
 p <- ggplot(skr,aes(x=data.positionCode,y=data.goals,fill=data.positionCode))
-p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="Goals by Position")
+p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
 Center position skater scored most goals and then right winger did. That makes sense!  
@@ -121,11 +184,12 @@ Center position skater scored most goals and then right winger did. That makes s
 ## Assists by skater position  
 ```{r}
 a <- ggplot(skr,aes(x=data.positionCode, y=data.assists, fill=data.positionCode))
-a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="Assists by Position")
+a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="< Assists by Position >")
 ```
 
 Center players assisted most and then Defenders did. I guessed wingers assisted most but the data tells different story. Interesting!!  
 
+# FACTORS WHICH INFLUENCE TEAM WINNING  
 ## How skater assists affect winning?  
 ```{r}
 # Filter datasets and create new variables
@@ -172,7 +236,7 @@ w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes a
   
 What a surprising result!! I thought the penalty minutes would affects goals and winnings in negative ways, but the graphs tell us totally opposite story.  
 
-## IS playing at Home really an advantage?  
+## Is playing at Home really an advantage?  
 ```{r}
 hwratio <- ttotal %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
   select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
