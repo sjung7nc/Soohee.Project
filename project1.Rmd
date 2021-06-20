@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # FUNCTIONS  
 ## Required Packages  
-```{r}
+```{r message=FALSE}
 library(httr)
 library(jsonlite)
 library(tidyverse)
@@ -145,6 +145,7 @@ wrap_fnc <- function(fnc,list,...){
 # CONTINGENCY TABLES  
 ## Franchise Records  
 ```{r}
+str(wrap_fnc("record","franchise"))
 head(wrap_fnc("record","franchise"))
 ```
 
@@ -157,32 +158,32 @@ tbl_df(wrap_fnc("record","franchise","team-totals"))
 ```{r}
 # I choose ID=10
 tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
-# I choose Franchise full name="New Jersey Devils"
-tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+# I choose Franchise full name="New York Rangers"
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New York Rangers"))
 ```
 
 ## franchise-goalie-records by franchiseId=ID  
 ```{r}
 # I choose ID=20
 tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
-# I choose Franchise full name="Philadelphia Flyers"
-tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+# I choose Franchise full name="Vancouver Canucks"
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Vancouver Canucks"))
 ```
 
 ## franchise-skater-records by franchiseId=ID  
 ```{r}
 # I choose ID=30
 tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
-# I choose Franchise full name="New York Rangers"
-tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+# I choose Franchise full name="Ottawa Senators"
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","Ottawa Senators"))
 ```
 
 ## franchise-detail records by mostRecentTeamId=ID  
 ```{r}
 # I choose ID=8
 tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
-# I choose Franchise full name="New York Islanders"
-tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+# I choose Franchise full name="Montréal Canadiens"
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","Montréal Canadiens"))
 ```
 
 ## Team Stat modifier  
@@ -198,10 +199,10 @@ tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 # GETTING BASIC IDEAS  
 ## Choose two franchises to compare with  
 ```{r}
-# create Winning percentage column and choose 2 comparable IDs
+# create Winning percentage column and choose 2 comparable franchise IDs
 a <- wrap_fnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
-  mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
-knitr::kable(a, caption="< Find winning percent >")
+  mutate(win_chance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, win_chance)
+knitr::kable(a, col.names=gsub("data.","",names(a)), align="cccc",  caption="Winning percentage by Franchise ID")
 ```
 
 ID=1 had higher chance of win than ID=20 had. Let's find the factors which affect team winning!    
@@ -210,7 +211,7 @@ ID=1 had higher chance of win than ID=20 had. Let's find the factors which affec
 ```{r}
 # Get skater records data
 skr <- wrap_fnc("record","franchise","skater-records")
-# Create box-plot
+# Create a box-plot
 p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
@@ -219,6 +220,7 @@ Center position skater scored most goals and then right winger did. That makes s
 
 ## Assists by skater position  
 ```{r}
+# Create a bar-plot
 b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.positionCode))
 b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
 ```
@@ -228,7 +230,8 @@ Center players assisted most and then Defenders did. I guessed wingers assisted 
 ## Some Numerical summaries  
 ```{r}
 # How many skaters by position
-table(skr$data.positionCode)
+F_join=full_join(wrap_fnc("record","franchise","goalie-records"),wrap_fnc("record","franchise","skater-records"))
+table(F_join$data.positionCode)
 # 2 = regular Season, 3 = play offs
 w<-wrap_fnc("record","franchise","team-totals")
 table(w$data.gameTypeId)
@@ -253,7 +256,7 @@ knitr::kable(avg_assi,col.names = "Avg Assists")
 The franchise ID=1 had more average assists and higher winning chance than ID=20 did.  
 
 ```{r}
-# Create a graph to see the relationship between assists and goals
+# Create a scatter-plot to see the relationship between assists and goals
 sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
@@ -271,7 +274,8 @@ center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
 The skaters who are in a center position scored more goals as they had more penalty minutes. What?? Interesting!  
 
-```{r}
+```{r message=FALSE, warning=FALSE}
+# Penalty minutes vs Goals(Wins)
 t_total <- wrap_fnc("record","franchise","team-totals")
 w <- ggplot(t_total,aes(data.penaltyMinutes,data.wins))
 g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
@@ -283,13 +287,17 @@ What a surprising result!! I thought the penalty minutes would affects goals and
 
 ## Is playing at Home really an advantage?  
 ```{r}
+# Create Home game winning ratio by homewins/wins
 hw_ratio <- t_total %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
   select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
+# Look at the output numbers in a table
 knitr::kable(hw_ratio)
+# Look at the distribution of Home winning ratio
 r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
 All teams had over 50% of winning chance when they played at home. Playing at Home really an advantage!!  
-According to all above **assists**, **penalty minutes** and **Home game** help teams win games.
+
+According to all above **assists**, **penalty minutes** and **Home game** helped teams win the games.
 

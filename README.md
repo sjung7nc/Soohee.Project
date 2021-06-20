@@ -188,6 +188,22 @@ wrap_fnc <- function(fnc,list,...){
 ## Franchise Records
 
 ``` r
+str(wrap_fnc("record","franchise"))
+```
+
+    ## List of 2
+    ##  $ data :'data.frame':   39 obs. of  8 variables:
+    ##   ..$ id              : int [1:39] 1 2 3 4 5 6 7 8 9 10 ...
+    ##   ..$ firstSeasonId   : int [1:39] 19171918 19171918 19171918 19191920 19171918 19241925 19241925 19251926 19251926 19261927 ...
+    ##   ..$ fullName        : chr [1:39] "Montréal Canadiens" "Montreal Wanderers" "St. Louis Eagles" "Hamilton Tigers" ...
+    ##   ..$ lastSeasonId    : int [1:39] NA 19171918 19341935 19241925 NA NA 19371938 19411942 19301931 NA ...
+    ##   ..$ mostRecentTeamId: int [1:39] 8 41 45 37 10 6 43 51 39 3 ...
+    ##   ..$ teamAbbrev      : chr [1:39] "MTL" "MWN" "SLE" "HAM" ...
+    ##   ..$ teamCommonName  : chr [1:39] "Canadiens" "Wanderers" "Eagles" "Tigers" ...
+    ##   ..$ teamPlaceName   : chr [1:39] "Montréal" "Montreal" "St. Louis" "Hamilton" ...
+    ##  $ total: int 39
+
+``` r
 head(wrap_fnc("record","franchise"))
 ```
 
@@ -347,14 +363,14 @@ tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
     ## #   data.winlessStreakDates <chr>, total <int>
 
 ``` r
-# I choose Franchise full name="New Jersey Devils"
-tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+# I choose Franchise full name="New York Rangers"
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New York Rangers"))
 ```
 
     ## # A tibble: 1 x 58
     ##   data.id data.fewestGoals data.fewestGoal~ data.fewestGoal~
     ##     <int>            <int>            <int> <chr>           
-    ## 1       1              174              164 2003-04 (82)    
+    ## 1       3              150              177 1970-71 (78)    
     ## # ... with 54 more variables: data.fewestGoalsSeasons <chr>,
     ## #   data.fewestLosses <int>, data.fewestLossesSeasons <chr>,
     ## #   data.fewestPoints <int>, data.fewestPointsSeasons <chr>,
@@ -417,24 +433,24 @@ tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
     ## #   data.ties <int>, data.wins <int>, total <int>
 
 ``` r
-# I choose Franchise full name="Philadelphia Flyers"
-tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+# I choose Franchise full name="Vancouver Canucks"
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Vancouver Canucks"))
 ```
 
-    ## # A tibble: 34 x 30
+    ## # A tibble: 40 x 30
     ##    data.id data.activePlay~ data.firstName data.franchiseId
     ##      <int> <lgl>            <chr>                     <int>
-    ##  1     341 FALSE            Stephane                     16
-    ##  2     366 FALSE            Sean                         16
-    ##  3     440 FALSE            Jeff                         16
-    ##  4     239 FALSE            Ron                          16
-    ##  5     466 FALSE            Gary                         16
-    ##  6     482 FALSE            Mark                         16
-    ##  7     485 FALSE            Michel                       16
-    ##  8     531 FALSE            Phil                         16
-    ##  9     584 FALSE            Bruce                        16
-    ## 10     307 FALSE            Bernie                       16
-    ## # ... with 24 more rows, and 26 more variables: data.franchiseName <chr>,
+    ##  1     304 FALSE            Richard                      20
+    ##  2     364 FALSE            Gary                         20
+    ##  3     367 FALSE            Sean                         20
+    ##  4    1224 FALSE            Frank                        20
+    ##  5     373 FALSE            Jacques                      20
+    ##  6     406 FALSE            Bob                          20
+    ##  7     423 FALSE            Troy                         20
+    ##  8     424 FALSE            John                         20
+    ##  9     500 FALSE            Bob                          20
+    ## 10     243 FALSE            Kirk                         20
+    ## # ... with 30 more rows, and 26 more variables: data.franchiseName <chr>,
     ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.lastName <chr>,
     ## #   data.losses <int>, data.mostGoalsAgainstDates <chr>,
     ## #   data.mostGoalsAgainstOneGame <int>, data.mostSavesDates <chr>,
@@ -482,24 +498,24 @@ tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
     ## #   data.rookiePoints <int>, data.seasons <int>, total <int>
 
 ``` r
-# I choose Franchise full name="New York Rangers"
-tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+# I choose Franchise full name="Ottawa Senators"
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","Ottawa Senators"))
 ```
 
-    ## # A tibble: 995 x 32
+    ## # A tibble: 364 x 32
     ##    data.id data.activePlay~ data.assists data.firstName data.franchiseId
     ##      <int> <lgl>                   <int> <chr>                     <int>
-    ##  1   17208 FALSE                       1 Doug                         10
-    ##  2   17216 FALSE                       0 Lloyd                        10
-    ##  3   17230 FALSE                       1 Bill                         10
-    ##  4   17310 FALSE                       0 Hub                          10
-    ##  5   17360 FALSE                       0 Ron                          10
-    ##  6   17374 FALSE                       4 Vern                         10
-    ##  7   17444 FALSE                       0 Cliff                        10
-    ##  8   17449 FALSE                       0 Frank                        10
-    ##  9   17467 FALSE                       1 Harry                        10
-    ## 10   17523 FALSE                       0 Bob                          10
-    ## # ... with 985 more rows, and 27 more variables: data.franchiseName <chr>,
+    ##  1   18785 FALSE                       0 Joe                          30
+    ##  2   19225 FALSE                       0 Bobby                        30
+    ##  3   19982 FALSE                       1 Marc                         30
+    ##  4   22168 FALSE                       2 Steve                        30
+    ##  5   22256 FALSE                       1 Jim                          30
+    ##  6   22437 FALSE                       1 Dominic                      30
+    ##  7   22496 FALSE                       2 Stephen                      30
+    ##  8   22590 FALSE                       1 Francois                     30
+    ##  9   23076 FALSE                       3 Brad                         30
+    ## 10   23650 FALSE                       0 Brad                         30
+    ## # ... with 354 more rows, and 27 more variables: data.franchiseName <chr>,
     ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.goals <int>,
     ## #   data.lastName <chr>, data.mostAssistsGameDates <chr>,
     ## #   data.mostAssistsOneGame <int>, data.mostAssistsOneSeason <int>,
@@ -539,26 +555,26 @@ tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
     ## 14 1
 
 ``` r
-# I choose Franchise full name="New York Islanders"
-tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+# I choose Franchise full name="Montréal Canadiens"
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","Montréal Canadiens"))
 ```
 
     ## # A tibble: 14 x 1
     ##    value                                                                   
     ##    <chr>                                                                   
-    ##  1 22                                                                      
+    ##  1 1                                                                       
     ##  2 TRUE                                                                    
-    ##  3 "Anders Lee: 2018-19 – Present   John Tavares: 2013-14 – 2017-18   Mark~
-    ##  4 "Barry Trotz: Oct. 4, 2018 – Present   Doug Weight: Jan. 19, 2017 – Apr~
-    ##  5 1972-06-06T00:00:00                                                     
-    ##  6 https://www.nhl.com/islanders/team/business-directory                   
-    ##  7 19721973                                                                
-    ##  8 "Lou Lamoriello: June 5, 2018 – Present   Garth Snow: July 18, 2006 – J~
-    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/NYI/Barza~
-    ## 10 2                                                                       
-    ## 11 "5 – Denis Potvin (1973-88)   9 – Clark Gillies (1974-86)   19 – Bryan ~
-    ## 12 NYI                                                                     
-    ## 13 New York Islanders                                                      
+    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (N~
+    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, ~
+    ##  5 1917-11-26T00:00:00                                                     
+    ##  6 https://www.nhl.com/canadiens/team/administration                       
+    ##  7 19171918                                                                
+    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 –~
+    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price~
+    ## 10 8                                                                       
+    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch B~
+    ## 12 MTL                                                                     
+    ## 13 Montréal Canadiens                                                      
     ## 14 1
 
 ## Team Stat modifier
@@ -690,40 +706,40 @@ tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 ## Choose two franchises to compare with
 
 ``` r
-# create Winning percentage column and choose 2 comparable IDs
+# create Winning percentage column and choose 2 comparable franchise IDs
 a <- wrap_fnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
-  mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
-knitr::kable(a, caption="< Find winning percent >")
+  mutate(win_chance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, win_chance)
+knitr::kable(a, col.names=gsub("data.","",names(a)), align="cccc",  caption="Winning percentage by Franchise ID")
 ```
 
-| data.franchiseId | data.gamesPlayed | data.wins | Winchance |
-|-----------------:|-----------------:|----------:|----------:|
-|               23 |             2993 |      1394 | 0.4657534 |
-|               22 |             3788 |      1688 | 0.4456177 |
-|               10 |             6560 |      2883 | 0.4394817 |
-|               16 |             4171 |      2079 | 0.4984416 |
-|               17 |             4171 |      1903 | 0.4562455 |
-|                6 |             6626 |      3241 | 0.4891337 |
-|               19 |             3945 |      1805 | 0.4575412 |
-|                1 |             6787 |      3473 | 0.5117136 |
-|               30 |             2195 |       971 | 0.4423690 |
-|                5 |             6516 |      2873 | 0.4409147 |
-|               33 |             2109 |       889 | 0.4215268 |
-|               31 |             2194 |       985 | 0.4489517 |
-|               24 |             3633 |      1700 | 0.4679328 |
-|               11 |             6560 |      2812 | 0.4286585 |
-|               12 |             6293 |      2891 | 0.4593993 |
-|               18 |             4173 |      1929 | 0.4622574 |
-|               21 |             3154 |      1497 | 0.4746354 |
-|               25 |             3235 |      1469 | 0.4540958 |
-|               20 |             3945 |      1649 | 0.4179975 |
-|               32 |             2111 |       990 | 0.4689721 |
-|               15 |             2109 |      1084 | 0.5139877 |
-|               14 |             4172 |      1754 | 0.4204219 |
-|               29 |             2274 |      1070 | 0.4705365 |
-|               15 |             2062 |       758 | 0.3676043 |
+| franchiseId | gamesPlayed | wins | win\_chance |
+|:-----------:|:-----------:|:----:|:-----------:|
+|     23      |    2993     | 1394 |  0.4657534  |
+|     22      |    3788     | 1688 |  0.4456177  |
+|     10      |    6560     | 2883 |  0.4394817  |
+|     16      |    4171     | 2079 |  0.4984416  |
+|     17      |    4171     | 1903 |  0.4562455  |
+|      6      |    6626     | 3241 |  0.4891337  |
+|     19      |    3945     | 1805 |  0.4575412  |
+|      1      |    6787     | 3473 |  0.5117136  |
+|     30      |    2195     | 971  |  0.4423690  |
+|      5      |    6516     | 2873 |  0.4409147  |
+|     33      |    2109     | 889  |  0.4215268  |
+|     31      |    2194     | 985  |  0.4489517  |
+|     24      |    3633     | 1700 |  0.4679328  |
+|     11      |    6560     | 2812 |  0.4286585  |
+|     12      |    6293     | 2891 |  0.4593993  |
+|     18      |    4173     | 1929 |  0.4622574  |
+|     21      |    3154     | 1497 |  0.4746354  |
+|     25      |    3235     | 1469 |  0.4540958  |
+|     20      |    3945     | 1649 |  0.4179975  |
+|     32      |    2111     | 990  |  0.4689721  |
+|     15      |    2109     | 1084 |  0.5139877  |
+|     14      |    4172     | 1754 |  0.4204219  |
+|     29      |    2274     | 1070 |  0.4705365  |
+|     15      |    2062     | 758  |  0.3676043  |
 
-&lt; Find winning percent &gt;
+Winning percentage by Franchise ID
 
 ID=1 had higher chance of win than ID=20 had. Let’s find the factors
 which affect team winning!
@@ -733,12 +749,12 @@ which affect team winning!
 ``` r
 # Get skater records data
 skr <- wrap_fnc("record","franchise","skater-records")
-# Create box-plot
+# Create a box-plot
 p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -746,11 +762,12 @@ makes sense!
 ## Assists by skater position
 
 ``` r
+# Create a bar-plot
 b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.positionCode))
 b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
 
 Center players assisted most and then Defenders did. I guessed wingers
 assisted most but the data tells different story. Interesting!!
@@ -759,12 +776,18 @@ assisted most but the data tells different story. Interesting!!
 
 ``` r
 # How many skaters by position
-table(skr$data.positionCode)
+F_join=full_join(wrap_fnc("record","franchise","goalie-records"),wrap_fnc("record","franchise","skater-records"))
+```
+
+    ## Joining, by = c("data.id", "data.activePlayer", "data.firstName", "data.franchiseId", "data.franchiseName", "data.gameTypeId", "data.gamesPlayed", "data.lastName", "data.playerId", "data.positionCode", "data.rookieGamesPlayed", "data.seasons", "total")
+
+``` r
+table(F_join$data.positionCode)
 ```
 
     ## 
-    ##    C    D    L    R 
-    ## 4275 5723 3740 3471
+    ##    C    D    G    L    R 
+    ## 4275 5723 1078 3740 3471
 
 ``` r
 # 2 = regular Season, 3 = play offs
@@ -803,12 +826,12 @@ The franchise ID=1 had more average assists and higher winning chance
 than ID=20 did.
 
 ``` r
-# Create a graph to see the relationship between assists and goals
+# Create a scatter-plot to see the relationship between assists and goals
 sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-85-1.png)<!-- -->
 
 This graph also tells us the relationship between assists and goals is
 linear. So, we can say **more assists leads higher chance of winning!**
@@ -825,29 +848,26 @@ center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
 
 The skaters who are in a center position scored more goals as they had
 more penalty minutes. What?? Interesting!
 
 ``` r
+# Penalty minutes vs Goals(Wins)
 t_total <- wrap_fnc("record","franchise","team-totals")
 w <- ggplot(t_total,aes(data.penaltyMinutes,data.wins))
 g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
 g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 ```
 
-    ## Smoothing formula not specified. Using: y ~ x
-
-![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
 ```
 
-    ## Smoothing formula not specified. Using: y ~ x
-
-![](README_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-87-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -856,8 +876,10 @@ opposite story.
 ## Is playing at Home really an advantage?
 
 ``` r
+# Create Home game winning ratio by homewins/wins
 hw_ratio <- t_total %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
   select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
+# Look at the output numbers in a table
 knitr::kable(hw_ratio)
 ```
 
@@ -922,13 +944,15 @@ knitr::kable(hw_ratio)
 | Toronto St. Patricks    |            73 |       109 |     0.6697248 |
 
 ``` r
+# Look at the distribution of Home winning ratio
 r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
-Playing at Home really an advantage!!  
+Playing at Home really an advantage!!
+
 According to all above **assists**, **penalty minutes** and **Home
-game** help teams win games.
+game** helped teams win the games.
