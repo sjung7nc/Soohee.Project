@@ -25,16 +25,18 @@ library(xml2)
 
 ```{r message=FALSE}
 # to mapping Franchise ids vs Full names vs Most recent team ID
-frurl <- GET("https://records.nhl.com/site/api/franchise")
-frtext <- content(frurl, "text", encoding = "UTF-8")
-frlist <- fromJSON(frtext, flatten=TRUE)
-frlist <- as.data.frame(frlist)
-frtbl <- tibble(frlist$data.id, frlist$data.fullName, frlist$data.mostRecentTeamId)
+fr_url <- GET("https://records.nhl.com/site/api/franchise")
+fr_text <- content(fr_url, "text", encoding = "UTF-8")
+fr_list <- fromJSON(fr_text, flatten=TRUE)
+fr_list <- as.data.frame(fr_list)
+# Select Franchise ID, Full names, Most recent team ID
+fr_tbl <- tibble(fr_list$data.id, fr_list$data.fullName, fr_list$data.mostRecentTeamId)
 # print to see what it looks like
-head(frtbl)
+head(fr_tbl)
 
-# record API function
-rcdURL <- function(list,recd,type,id){
+# Creating Record API function
+# Function to get Endpoint URL
+rcd_url <- function(list,recd,type,id){
   if (missing(recd) & missing(type) & missing(id)){
     rcdurl <- paste0("https://records.nhl.com/site/api/",list)
   }
@@ -47,11 +49,11 @@ rcdURL <- function(list,recd,type,id){
     }
     else {
       if (type=="mostRecentTeamId"){
-        id <- filter(filter(frtbl,frtbl[2]==id)[3])
+        id <- filter(filter(fr_tbl,fr_tbl[2]==id)[3]) #convert Full name to Most recent team ID
         rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
       }
       else {
-        id <- filter(filter(frtbl,frtbl[2]==id)[1])
+        id <- filter(filter(fr_tbl,fr_tbl[2]==id)[1]) #Convert Full name to Franchise ID
         rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
       }
     }
@@ -59,42 +61,46 @@ rcdURL <- function(list,recd,type,id){
   return(rcdurl)
 }
 
-rcddt <- function(list,recd,...){
+# Function to get data from the URL
+rcd_dt <- function(list,recd,...){
   if (missing(recd)){
-    rcdNHL <- GET(rcdURL(list))
-    rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-    rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-    rcdlist <- as.data.frame(rcdlist)
+    rcd_NHL <- GET(rcd_url(list))
+    rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+    rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+    rcdl_ist <- as.data.frame(rcd_list)
   }
   else {
     if (recd=="detail"){
-      rcdNHL <- GET(rcdURL(list,recd,...))
-      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-      rcdlist <- as.data.frame(rcdlist)
-      ca<-read_html(rcdlist$data.captainHistory)        
-      rcdlist$data.captainHistory<- xml_text(ca)
-      co<-read_html(rcdlist$data.coachingHistory)        
-      rcdlist$data.coachingHistory<- xml_text(co)
-      ge<-read_html(rcdlist$data.generalManagerHistory)        
-      rcdlist$data.generalManagerHistory<- xml_text(ge)
-      re<-read_html(rcdlist$data.retiredNumbersSummary)        
-      rcdlist$data.retiredNumbersSummary<- xml_text(re)
+      rcd_NHL <- GET(rcd_url(list,recd,...))
+      rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+      rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+      rcd_list <- as.data.frame(rcd_list)
+      # unwrap HTML file nested in franchise-detail endpoint
+      ca<-read_html(rcd_list$data.captainHistory)        
+      rcd_list$data.captainHistory<- xml_text(ca)
+      co<-read_html(rcd_list$data.coachingHistory)        
+      rcd_list$data.coachingHistory<- xml_text(co)
+      ge<-read_html(rcd_list$data.generalManagerHistory)        
+      rcd_list$data.generalManagerHistory<- xml_text(ge)
+      re<-read_html(rcd_list$data.retiredNumbersSummary)        
+      rcd_list$data.retiredNumbersSummary<- xml_text(re)
+      rcd_list <- gsub("[\r\n\t]"," ",rcd_list)
     }
     else {
-      rcdNHL <- GET(rcdURL(list,recd,...))
-      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-      rcdlist <- as.data.frame(rcdlist)
+      rcd_NHL <- GET(rcd_url(list,recd,...))
+      rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+      rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+      rcd_list <- as.data.frame(rcd_list)
     }
   }
-  return(rcdlist)
+  return(rcd_list)
 }
 ```
 
 ## Stat-API function  
 ```{r}
-statURL <- function(list,id){
+# Function to get Endpoint URL
+stat_URL <- function(list,id){
   if (missing(id)){
     staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
   }
@@ -103,159 +109,161 @@ statURL <- function(list,id){
       staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
     }
     else {
-      id <- filter(filter(frtbl,frtbl[2]==id)[1])
+      id <- filter(filter(fr_tbl,fr_tbl[2]==id)[3]) #convert Full name to Most recent team ID
       staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
     }
   }
   return(staturl)
 }
 
-statdt <- function(list,...){
-  statNHL <- GET(statURL(list,...))
-  stattext <- content(statNHL, "text",encoding = "UTF-8")
-  statlist <- fromJSON(stattext, flatten=TRUE)
-  statlist <- as.data.frame(statlist)
-  statlist <- unnest(unnest(statlist,cols = c(teams.teamStats)),cols = c(splits))
-  return(statlist)
+# Function to get data from the URL
+stat_dt <- function(list,...){
+  stat_NHL <- GET(stat_URL(list,...))
+  stat_text <- content(stat_NHL, "text",encoding = "UTF-8")
+  stat_list <- fromJSON(stat_text, flatten=TRUE)
+  stat_list <- as.data.frame(stat_list)
+  # Unwrap nested lists in stat endpoint
+  stat_list <- unnest(unnest(stat_list,cols = c(teams.teamStats)),cols = c(splits))
+  return(stat_list)
 }
 ```
 
 ## Wrapper function to call the functions above  
 ```{r}
-# choose record or stat and then put parameters what we want
-wrapfnc <- function(fnc,list,...){
+# choose record or stat and then put parameters to get data
+wrap_fnc <- function(fnc,list,...){
   if (fnc=="record"){
-    return(rcddt(list,...))
+    return(rcd_dt(list,...))
   }
   else if (fnc=="stat"){
-    return(statdt(list,...))
+    return(stat_dt(list,...))
   }
-  else cat("choose record or stat!!")
+  else cat("Unavailable arguments")
 }
 ```
 
-# Contingency Tables  
+# CONTINGENCY TABLES  
 ## Franchise Records  
 ```{r}
-as.tbl(wrapfnc("record","franchise"))
+head(wrap_fnc("record","franchise"))
 ```
 
 ## Franchise-team-totals Records  
 ```{r}
-as.tbl(wrapfnc("record","franchise","team-totals"))
+tbl_df(wrap_fnc("record","franchise","team-totals"))
 ```
 
 ## franchise-season-records by franchiseId=ID  
 ```{r}
 # I choose ID=10
-as.tbl(wrapfnc("record","franchise","season-records","franchiseId",10))
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
 # I choose Franchise full name="New Jersey Devils"
-as.tbl(wrapfnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
 ```
 
 ## franchise-goalie-records by franchiseId=ID  
 ```{r}
 # I choose ID=20
-as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId",20))
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
 # I choose Franchise full name="Philadelphia Flyers"
-as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
 ```
 
 ## franchise-skater-records by franchiseId=ID  
 ```{r}
 # I choose ID=30
-as.tbl(wrapfnc("record","franchise","skater-records","franchiseId",30))
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
 # I choose Franchise full name="New York Rangers"
-as.tbl(wrapfnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","New York Rangers"))
 ```
 
 ## franchise-detail records by mostRecentTeamId=ID  
 ```{r}
 # I choose ID=8
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId",8))
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
 # I choose Franchise full name="New York Islanders"
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
 ```
 
 ## Team Stat modifier  
 ```{r}
 # I choose all ID
-as.tbl(wrapfnc("stat","teams"))
+tbl_df(wrap_fnc("stat","teams"))
 # I choose ID=1
-as.tbl(wrapfnc("stat","teams",1))
+tbl_df(wrap_fnc("stat","teams",1))
 # I choose Franchise full name="New Jersey Devils"
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New Jersey Devils"))
+tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 ```
 
-# Getting basic ideas  
+# GETTING BASIC IDEAS  
 ## Choose two franchises to compare with  
 ```{r}
-# Look for interesting results from 'team-total' dataset. 
-a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
+# create Winning percentage column and choose 2 comparable IDs
+a <- wrap_fnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
   mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
-knitr::kable(a)
+knitr::kable(a, caption="< Find winning percent >")
 ```
 
 ID=1 had higher chance of win than ID=20 had. Let's find the factors which affect team winning!    
 
 ## Goals by skater position  
 ```{r}
-skr <- wrapfnc("record","franchise","skater-records")
-p <- ggplot(skr,aes(x=data.positionCode,y=data.goals,fill=data.positionCode))
-p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
+skr <- wrap_fnc("record","franchise","skater-records")
+p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
+p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
 Center position skater scored most goals and then right winger did. That makes sense!  
 
 ## Assists by skater position  
 ```{r}
-a <- ggplot(skr,aes(x=data.positionCode, y=data.assists, fill=data.positionCode))
-a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="< Assists by Position >")
+b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.positionCode))
+b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
 ```
 
 Center players assisted most and then Defenders did. I guessed wingers assisted most but the data tells different story. Interesting!!  
 
 # FACTORS WHICH INFLUENCE TEAM WINNING  
-## How skater assists affect winning?  
+## Do skater assists affect winning?  
 ```{r}
 # Filter datasets and create new variables
-skid1 <- wrapfnc("record","franchise", "skater-records","franchiseId",1)
-skid20 <- wrapfnc("record","franchise", "skater-records","franchiseId",20)
+sk_id1 <- wrap_fnc("record","franchise", "skater-records","franchiseId",1)
+sk_id20 <- wrap_fnc("record","franchise", "skater-records","franchiseId",20)
 
 # Combine two datasets
-cosk <- rbind(skid1,skid20)
-cosk$data.franchiseId <- as.character(cosk$data.franchiseId)
+co_sk <- rbind(sk_id1,sk_id20)
+co_sk$data.franchiseId <- as.character(co_sk$data.franchiseId)
 
 # Summarise skaters assists records
-avgassi <- c(ID.1=mean(skid1$data.assists),ID.20=mean(skid20$data.assists))
-knitr::kable(avgassi,col.names = "Avg Assists")
+avg_assi <- c(ID.1=mean(sk_id1$data.assists),ID.20=mean(sk_id20$data.assists))
+knitr::kable(avg_assi,col.names = "Avg Assists")
 ```
 
-We can see Franchise ID=1 had more average assists from the data.  
+The franchise ID=1 had more average assists and higher winning chance than ID=20 did.  
 
 ```{r}
 # Create a graph to see the relationship between assists and goals
-sk <- ggplot(cosk, aes(x=data.assists, y=data.goals))
+sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-The franchise ID=1 had more average assists and higher winning chance than ID=20 did. This graph also tells us the relationship between assists and goals is linear. So, we can say **more assists leads higher chance of winning!**  
+This graph also tells us the relationship between assists and goals is linear. So, we can say **more assists leads higher chance of winning!**  
 
 ## How center position skater's penalty time affect goal?  
 ```{r}
 # Summarise center position skater's penalty minutes records
-center <- cosk %>% filter(data.positionCode== "C")
-centerpt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
-centerpt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
+center <- co_sk %>% filter(data.positionCode== "C")
+center_pt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
+center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
   labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
 ```
 
 The skaters who are in a center position scored more goals as they had more penalty minutes. What?? Interesting!  
 
 ```{r}
-ttotal <- wrapfnc("record","franchise","team-totals")
-w <- ggplot(ttotal,aes(data.penaltyMinutes,data.wins))
-g <- ggplot(ttotal,aes(data.penaltyMinutes,data.goalsFor))
+t_total <- wrap_fnc("record","franchise","team-totals")
+w <- ggplot(t_total,aes(data.penaltyMinutes,data.wins))
+g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
 g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
 ```
@@ -264,19 +272,13 @@ What a surprising result!! I thought the penalty minutes would affects goals and
 
 ## Is playing at Home really an advantage?  
 ```{r}
-hwratio <- ttotal %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
+hw_ratio <- t_total %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
   select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
-knitr::kable(hwratio)
-r <- ggplot(hwratio,aes(x=HomeWin.ratio))
+knitr::kable(hw_ratio)
+r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
 All teams had over 50% of winning chance when they played at home. Playing at Home really an advantage!!  
+According to all above **assists**, **penalty minutes** and **Home game** help teams win games.
 
-## Stat  
-```{r}
-stat <- wrapfnc("stat","teams")
-# PIck odd number rows
-stat <- stat[seq(1,62,2),]
-
-```

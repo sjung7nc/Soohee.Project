@@ -9,7 +9,7 @@ Soohee Jung
     -   [Stat-API function](#stat-api-function)
     -   [Wrapper function to call the functions
         above](#wrapper-function-to-call-the-functions-above)
--   [Contingency Tables](#contingency-tables)
+-   [CONTINGENCY TABLES](#contingency-tables)
     -   [Franchise Records](#franchise-records)
     -   [Franchise-team-totals Records](#franchise-team-totals-records)
     -   [franchise-season-records by
@@ -21,20 +21,19 @@ Soohee Jung
     -   [franchise-detail records by
         mostRecentTeamId=ID](#franchise-detail-records-by-mostrecentteamidid)
     -   [Team Stat modifier](#team-stat-modifier)
--   [Getting basic ideas](#getting-basic-ideas)
+-   [GETTING BASIC IDEAS](#getting-basic-ideas)
     -   [Choose two franchises to compare
         with](#choose-two-franchises-to-compare-with)
     -   [Goals by skater position](#goals-by-skater-position)
     -   [Assists by skater position](#assists-by-skater-position)
 -   [FACTORS WHICH INFLUENCE TEAM
     WINNING](#factors-which-influence-team-winning)
-    -   [How skater assists affect
-        winning?](#how-skater-assists-affect-winning)
+    -   [Do skater assists affect
+        winning?](#do-skater-assists-affect-winning)
     -   [How center position skater’s penalty time affect
         goal?](#how-center-position-skaters-penalty-time-affect-goal)
     -   [Is playing at Home really an
         advantage?](#is-playing-at-home-really-an-advantage)
-    -   [Stat](#stat)
 
 # FUNCTIONS
 
@@ -52,28 +51,30 @@ library(xml2)
 
 ``` r
 # to mapping Franchise ids vs Full names vs Most recent team ID
-frurl <- GET("https://records.nhl.com/site/api/franchise")
-frtext <- content(frurl, "text", encoding = "UTF-8")
-frlist <- fromJSON(frtext, flatten=TRUE)
-frlist <- as.data.frame(frlist)
-frtbl <- tibble(frlist$data.id, frlist$data.fullName, frlist$data.mostRecentTeamId)
+fr_url <- GET("https://records.nhl.com/site/api/franchise")
+fr_text <- content(fr_url, "text", encoding = "UTF-8")
+fr_list <- fromJSON(fr_text, flatten=TRUE)
+fr_list <- as.data.frame(fr_list)
+# Select Franchise ID, Full names, Most recent team ID
+fr_tbl <- tibble(fr_list$data.id, fr_list$data.fullName, fr_list$data.mostRecentTeamId)
 # print to see what it looks like
-head(frtbl)
+head(fr_tbl)
 ```
 
     ## # A tibble: 6 x 3
-    ##   `frlist$data.id` `frlist$data.fullName` `frlist$data.mostRecentTeamId`
-    ##              <int> <chr>                                           <int>
-    ## 1                1 Montréal Canadiens                                  8
-    ## 2                2 Montreal Wanderers                                 41
-    ## 3                3 St. Louis Eagles                                   45
-    ## 4                4 Hamilton Tigers                                    37
-    ## 5                5 Toronto Maple Leafs                                10
-    ## 6                6 Boston Bruins                                       6
+    ##   `fr_list$data.id` `fr_list$data.fullName` `fr_list$data.mostRecentTeamId`
+    ##               <int> <chr>                                             <int>
+    ## 1                 1 Montréal Canadiens                                    8
+    ## 2                 2 Montreal Wanderers                                   41
+    ## 3                 3 St. Louis Eagles                                     45
+    ## 4                 4 Hamilton Tigers                                      37
+    ## 5                 5 Toronto Maple Leafs                                  10
+    ## 6                 6 Boston Bruins                                         6
 
 ``` r
-# record API function
-rcdURL <- function(list,recd,type,id){
+# Creating Record API function
+# Function to get Endpoint URL
+rcd_url <- function(list,recd,type,id){
   if (missing(recd) & missing(type) & missing(id)){
     rcdurl <- paste0("https://records.nhl.com/site/api/",list)
   }
@@ -86,11 +87,11 @@ rcdURL <- function(list,recd,type,id){
     }
     else {
       if (type=="mostRecentTeamId"){
-        id <- filter(filter(frtbl,frtbl[2]==id)[3])
+        id <- filter(filter(fr_tbl,fr_tbl[2]==id)[3]) #convert Full name to Most recent team ID
         rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
       }
       else {
-        id <- filter(filter(frtbl,frtbl[2]==id)[1])
+        id <- filter(filter(fr_tbl,fr_tbl[2]==id)[1]) #Convert Full name to Franchise ID
         rcdurl <- paste0("https://records.nhl.com/site/api/",list,"-",recd,"?cayenneExp=", type, "=", id)
       }
     }
@@ -98,43 +99,47 @@ rcdURL <- function(list,recd,type,id){
   return(rcdurl)
 }
 
-rcddt <- function(list,recd,...){
+# Function to get data from the URL
+rcd_dt <- function(list,recd,...){
   if (missing(recd)){
-    rcdNHL <- GET(rcdURL(list))
-    rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-    rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-    rcdlist <- as.data.frame(rcdlist)
+    rcd_NHL <- GET(rcd_url(list))
+    rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+    rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+    rcdl_ist <- as.data.frame(rcd_list)
   }
   else {
     if (recd=="detail"){
-      rcdNHL <- GET(rcdURL(list,recd,...))
-      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-      rcdlist <- as.data.frame(rcdlist)
-      ca<-read_html(rcdlist$data.captainHistory)        
-      rcdlist$data.captainHistory<- xml_text(ca)
-      co<-read_html(rcdlist$data.coachingHistory)        
-      rcdlist$data.coachingHistory<- xml_text(co)
-      ge<-read_html(rcdlist$data.generalManagerHistory)        
-      rcdlist$data.generalManagerHistory<- xml_text(ge)
-      re<-read_html(rcdlist$data.retiredNumbersSummary)        
-      rcdlist$data.retiredNumbersSummary<- xml_text(re)
+      rcd_NHL <- GET(rcd_url(list,recd,...))
+      rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+      rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+      rcd_list <- as.data.frame(rcd_list)
+      # unwrap HTML file nested in franchise-detail endpoint
+      ca<-read_html(rcd_list$data.captainHistory)        
+      rcd_list$data.captainHistory<- xml_text(ca)
+      co<-read_html(rcd_list$data.coachingHistory)        
+      rcd_list$data.coachingHistory<- xml_text(co)
+      ge<-read_html(rcd_list$data.generalManagerHistory)        
+      rcd_list$data.generalManagerHistory<- xml_text(ge)
+      re<-read_html(rcd_list$data.retiredNumbersSummary)        
+      rcd_list$data.retiredNumbersSummary<- xml_text(re)
+      rcd_list <- gsub("[\r\n\t]"," ",rcd_list)
     }
     else {
-      rcdNHL <- GET(rcdURL(list,recd,...))
-      rcdtext <- content(rcdNHL, "text",encoding = "UTF-8")
-      rcdlist <- fromJSON(rcdtext, flatten=TRUE)
-      rcdlist <- as.data.frame(rcdlist)
+      rcd_NHL <- GET(rcd_url(list,recd,...))
+      rcd_text <- content(rcd_NHL, "text",encoding = "UTF-8")
+      rcd_list <- fromJSON(rcd_text, flatten=TRUE)
+      rcd_list <- as.data.frame(rcd_list)
     }
   }
-  return(rcdlist)
+  return(rcd_list)
 }
 ```
 
 ## Stat-API function
 
 ``` r
-statURL <- function(list,id){
+# Function to get Endpoint URL
+stat_URL <- function(list,id){
   if (missing(id)){
     staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
   }
@@ -143,66 +148,137 @@ statURL <- function(list,id){
       staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
     }
     else {
-      id <- filter(filter(frtbl,frtbl[2]==id)[1])
+      id <- filter(filter(fr_tbl,fr_tbl[2]==id)[3]) #convert Full name to Most recent team ID
       staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"/",id,"?expand=team.stats")
     }
   }
   return(staturl)
 }
 
-statdt <- function(list,...){
-  statNHL <- GET(statURL(list,...))
-  stattext <- content(statNHL, "text",encoding = "UTF-8")
-  statlist <- fromJSON(stattext, flatten=TRUE)
-  statlist <- as.data.frame(statlist)
-  statlist <- unnest(unnest(statlist,cols = c(teams.teamStats)),cols = c(splits))
-  return(statlist)
+# Function to get data from the URL
+stat_dt <- function(list,...){
+  stat_NHL <- GET(stat_URL(list,...))
+  stat_text <- content(stat_NHL, "text",encoding = "UTF-8")
+  stat_list <- fromJSON(stat_text, flatten=TRUE)
+  stat_list <- as.data.frame(stat_list)
+  # Unwrap nested lists in stat endpoint
+  stat_list <- unnest(unnest(stat_list,cols = c(teams.teamStats)),cols = c(splits))
+  return(stat_list)
 }
 ```
 
 ## Wrapper function to call the functions above
 
 ``` r
-# choose record or stat and then put parameters what we want
-wrapfnc <- function(fnc,list,...){
+# choose record or stat and then put parameters to get data
+wrap_fnc <- function(fnc,list,...){
   if (fnc=="record"){
-    return(rcddt(list,...))
+    return(rcd_dt(list,...))
   }
   else if (fnc=="stat"){
-    return(statdt(list,...))
+    return(stat_dt(list,...))
   }
-  else cat("choose record or stat!!")
+  else cat("Unavailable arguments")
 }
 ```
 
-# Contingency Tables
+# CONTINGENCY TABLES
 
 ## Franchise Records
 
 ``` r
-as.tbl(wrapfnc("record","franchise"))
+head(wrap_fnc("record","franchise"))
 ```
 
-    ## # A tibble: 39 x 9
-    ##    data.id data.firstSeaso~ data.fullName data.lastSeason~ data.mostRecent~
-    ##      <int>            <int> <chr>                    <int>            <int>
-    ##  1       1         19171918 Montréal Can~               NA                8
-    ##  2       2         19171918 Montreal Wan~         19171918               41
-    ##  3       3         19171918 St. Louis Ea~         19341935               45
-    ##  4       4         19191920 Hamilton Tig~         19241925               37
-    ##  5       5         19171918 Toronto Mapl~               NA               10
-    ##  6       6         19241925 Boston Bruins               NA                6
-    ##  7       7         19241925 Montreal Mar~         19371938               43
-    ##  8       8         19251926 Brooklyn Ame~         19411942               51
-    ##  9       9         19251926 Philadelphia~         19301931               39
-    ## 10      10         19261927 New York Ran~               NA                3
-    ## # ... with 29 more rows, and 4 more variables: data.teamAbbrev <chr>,
-    ## #   data.teamCommonName <chr>, data.teamPlaceName <chr>, total <int>
+    ## $data
+    ##    id firstSeasonId              fullName lastSeasonId mostRecentTeamId
+    ## 1   1      19171918    Montréal Canadiens           NA                8
+    ## 2   2      19171918    Montreal Wanderers     19171918               41
+    ## 3   3      19171918      St. Louis Eagles     19341935               45
+    ## 4   4      19191920       Hamilton Tigers     19241925               37
+    ## 5   5      19171918   Toronto Maple Leafs           NA               10
+    ## 6   6      19241925         Boston Bruins           NA                6
+    ## 7   7      19241925      Montreal Maroons     19371938               43
+    ## 8   8      19251926    Brooklyn Americans     19411942               51
+    ## 9   9      19251926  Philadelphia Quakers     19301931               39
+    ## 10 10      19261927      New York Rangers           NA                3
+    ## 11 11      19261927    Chicago Blackhawks           NA               16
+    ## 12 12      19261927     Detroit Red Wings           NA               17
+    ## 13 13      19671968      Cleveland Barons     19771978               49
+    ## 14 14      19671968     Los Angeles Kings           NA               26
+    ## 15 15      19671968          Dallas Stars           NA               25
+    ## 16 16      19671968   Philadelphia Flyers           NA                4
+    ## 17 17      19671968   Pittsburgh Penguins           NA                5
+    ## 18 18      19671968       St. Louis Blues           NA               19
+    ## 19 19      19701971        Buffalo Sabres           NA                7
+    ## 20 20      19701971     Vancouver Canucks           NA               23
+    ## 21 21      19721973        Calgary Flames           NA               20
+    ## 22 22      19721973    New York Islanders           NA                2
+    ## 23 23      19741975     New Jersey Devils           NA                1
+    ## 24 24      19741975   Washington Capitals           NA               15
+    ## 25 25      19791980       Edmonton Oilers           NA               22
+    ## 26 26      19791980   Carolina Hurricanes           NA               12
+    ## 27 27      19791980    Colorado Avalanche           NA               21
+    ## 28 28      19791980       Arizona Coyotes           NA               53
+    ## 29 29      19911992       San Jose Sharks           NA               28
+    ## 30 30      19921993       Ottawa Senators           NA                9
+    ## 31 31      19921993   Tampa Bay Lightning           NA               14
+    ## 32 32      19931994         Anaheim Ducks           NA               24
+    ## 33 33      19931994      Florida Panthers           NA               13
+    ## 34 34      19981999   Nashville Predators           NA               18
+    ## 35 35      19992000         Winnipeg Jets           NA               52
+    ## 36 36      20002001 Columbus Blue Jackets           NA               29
+    ## 37 37      20002001        Minnesota Wild           NA               30
+    ## 38 38      20172018  Vegas Golden Knights           NA               54
+    ## 39 39      20212022        Seattle Kraken           NA               55
+    ##    teamAbbrev teamCommonName teamPlaceName
+    ## 1         MTL      Canadiens      Montréal
+    ## 2         MWN      Wanderers      Montreal
+    ## 3         SLE         Eagles     St. Louis
+    ## 4         HAM         Tigers      Hamilton
+    ## 5         TOR    Maple Leafs       Toronto
+    ## 6         BOS         Bruins        Boston
+    ## 7         MMR        Maroons      Montreal
+    ## 8         BRK      Americans      Brooklyn
+    ## 9         QUA        Quakers  Philadelphia
+    ## 10        NYR        Rangers      New York
+    ## 11        CHI     Blackhawks       Chicago
+    ## 12        DET      Red Wings       Detroit
+    ## 13        CLE         Barons     Cleveland
+    ## 14        LAK          Kings   Los Angeles
+    ## 15        DAL          Stars        Dallas
+    ## 16        PHI         Flyers  Philadelphia
+    ## 17        PIT       Penguins    Pittsburgh
+    ## 18        STL          Blues     St. Louis
+    ## 19        BUF         Sabres       Buffalo
+    ## 20        VAN        Canucks     Vancouver
+    ## 21        CGY         Flames       Calgary
+    ## 22        NYI      Islanders      New York
+    ## 23        NJD         Devils    New Jersey
+    ## 24        WSH       Capitals    Washington
+    ## 25        EDM         Oilers      Edmonton
+    ## 26        CAR     Hurricanes      Carolina
+    ## 27        COL      Avalanche      Colorado
+    ## 28        ARI        Coyotes       Arizona
+    ## 29        SJS         Sharks      San Jose
+    ## 30        OTT       Senators        Ottawa
+    ## 31        TBL      Lightning     Tampa Bay
+    ## 32        ANA          Ducks       Anaheim
+    ## 33        FLA       Panthers       Florida
+    ## 34        NSH      Predators     Nashville
+    ## 35        WPG           Jets      Winnipeg
+    ## 36        CBJ   Blue Jackets      Columbus
+    ## 37        MIN           Wild     Minnesota
+    ## 38        VGK Golden Knights         Vegas
+    ## 39        SEA         Kraken       Seattle
+    ## 
+    ## $total
+    ## [1] 39
 
 ## Franchise-team-totals Records
 
 ``` r
-as.tbl(wrapfnc("record","franchise","team-totals"))
+tbl_df(wrap_fnc("record","franchise","team-totals"))
 ```
 
     ## # A tibble: 105 x 31
@@ -234,7 +310,7 @@ as.tbl(wrapfnc("record","franchise","team-totals"))
 
 ``` r
 # I choose ID=10
-as.tbl(wrapfnc("record","franchise","season-records","franchiseId",10))
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
 ```
 
     ## # A tibble: 1 x 58
@@ -271,7 +347,7 @@ as.tbl(wrapfnc("record","franchise","season-records","franchiseId",10))
 
 ``` r
 # I choose Franchise full name="New Jersey Devils"
-as.tbl(wrapfnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
+tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New Jersey Devils"))
 ```
 
     ## # A tibble: 1 x 58
@@ -310,7 +386,7 @@ as.tbl(wrapfnc("record","franchise","season-records","franchiseId","New Jersey D
 
 ``` r
 # I choose ID=20
-as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId",20))
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
 ```
 
     ## # A tibble: 40 x 30
@@ -341,7 +417,7 @@ as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId",20))
 
 ``` r
 # I choose Franchise full name="Philadelphia Flyers"
-as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
+tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Philadelphia Flyers"))
 ```
 
     ## # A tibble: 34 x 30
@@ -374,7 +450,7 @@ as.tbl(wrapfnc("record","franchise","goalie-records","franchiseId","Philadelphia
 
 ``` r
 # I choose ID=30
-as.tbl(wrapfnc("record","franchise","skater-records","franchiseId",30))
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
 ```
 
     ## # A tibble: 364 x 32
@@ -406,7 +482,7 @@ as.tbl(wrapfnc("record","franchise","skater-records","franchiseId",30))
 
 ``` r
 # I choose Franchise full name="New York Rangers"
-as.tbl(wrapfnc("record","franchise","skater-records","franchiseId","New York Rangers"))
+tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","New York Rangers"))
 ```
 
     ## # A tibble: 995 x 32
@@ -440,39 +516,55 @@ as.tbl(wrapfnc("record","franchise","skater-records","franchiseId","New York Ran
 
 ``` r
 # I choose ID=8
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId",8))
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
 ```
 
-    ## # A tibble: 1 x 14
-    ##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
-    ##     <int> <lgl>       <chr>            <chr>            <chr>           
-    ## 1       1 TRUE        "Shea Weber: 20~ "Dominique Duch~ 1917-11-26T00:0~
-    ## # ... with 9 more variables: data.directoryUrl <chr>,
-    ## #   data.firstSeasonId <int>, data.generalManagerHistory <chr>,
-    ## #   data.heroImageUrl <chr>, data.mostRecentTeamId <int>,
-    ## #   data.retiredNumbersSummary <chr>, data.teamAbbrev <chr>,
-    ## #   data.teamFullName <chr>, total <int>
+    ## # A tibble: 14 x 1
+    ##    value                                                                   
+    ##    <chr>                                                                   
+    ##  1 1                                                                       
+    ##  2 TRUE                                                                    
+    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (N~
+    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, ~
+    ##  5 1917-11-26T00:00:00                                                     
+    ##  6 https://www.nhl.com/canadiens/team/administration                       
+    ##  7 19171918                                                                
+    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 –~
+    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price~
+    ## 10 8                                                                       
+    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch B~
+    ## 12 MTL                                                                     
+    ## 13 Montréal Canadiens                                                      
+    ## 14 1
 
 ``` r
 # I choose Franchise full name="New York Islanders"
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
+tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","New York Islanders"))
 ```
 
-    ## # A tibble: 1 x 14
-    ##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
-    ##     <int> <lgl>       <chr>            <chr>            <chr>           
-    ## 1      22 TRUE        "Anders Lee: 20~ "Barry Trotz: O~ 1972-06-06T00:0~
-    ## # ... with 9 more variables: data.directoryUrl <chr>,
-    ## #   data.firstSeasonId <int>, data.generalManagerHistory <chr>,
-    ## #   data.heroImageUrl <chr>, data.mostRecentTeamId <int>,
-    ## #   data.retiredNumbersSummary <chr>, data.teamAbbrev <chr>,
-    ## #   data.teamFullName <chr>, total <int>
+    ## # A tibble: 14 x 1
+    ##    value                                                                   
+    ##    <chr>                                                                   
+    ##  1 22                                                                      
+    ##  2 TRUE                                                                    
+    ##  3 "Anders Lee: 2018-19 – Present   John Tavares: 2013-14 – 2017-18   Mark~
+    ##  4 "Barry Trotz: Oct. 4, 2018 – Present   Doug Weight: Jan. 19, 2017 – Apr~
+    ##  5 1972-06-06T00:00:00                                                     
+    ##  6 https://www.nhl.com/islanders/team/business-directory                   
+    ##  7 19721973                                                                
+    ##  8 "Lou Lamoriello: June 5, 2018 – Present   Garth Snow: July 18, 2006 – J~
+    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/NYI/Barza~
+    ## 10 2                                                                       
+    ## 11 "5 – Denis Potvin (1973-88)   9 – Clark Gillies (1974-86)   19 – Bryan ~
+    ## 12 NYI                                                                     
+    ## 13 New York Islanders                                                      
+    ## 14 1
 
 ## Team Stat modifier
 
 ``` r
 # I choose all ID
-as.tbl(wrapfnc("stat","teams"))
+tbl_df(wrap_fnc("stat","teams"))
 ```
 
     ## # A tibble: 62 x 66
@@ -518,7 +610,7 @@ as.tbl(wrapfnc("stat","teams"))
 
 ``` r
 # I choose ID=1
-as.tbl(wrapfnc("stat","teams",1))
+tbl_df(wrap_fnc("stat","teams",1))
 ```
 
     ## # A tibble: 2 x 65
@@ -556,386 +648,81 @@ as.tbl(wrapfnc("stat","teams",1))
 
 ``` r
 # I choose Franchise full name="New Jersey Devils"
-as.tbl(wrapfnc("record","franchise","detail","mostRecentTeamId","New Jersey Devils"))
+tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 ```
 
-    ## # A tibble: 1 x 14
-    ##   data.id data.active data.captainHis~ data.coachingHi~ data.dateAwarded
-    ##     <int> <lgl>       <chr>            <chr>            <chr>           
-    ## 1      23 TRUE        "(No Captain) a~ "Lindy Ruff: Pr~ 1974-06-11T00:0~
-    ## # ... with 9 more variables: data.directoryUrl <chr>,
-    ## #   data.firstSeasonId <int>, data.generalManagerHistory <chr>,
-    ## #   data.heroImageUrl <chr>, data.mostRecentTeamId <int>,
-    ## #   data.retiredNumbersSummary <chr>, data.teamAbbrev <chr>,
-    ## #   data.teamFullName <chr>, total <int>
+    ## # A tibble: 2 x 65
+    ##   copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
+    ##   <fct>        <int> <chr>      <chr>      <chr>            <chr>         
+    ## 1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
+    ## 2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
+    ## # ... with 59 more variables: teams.locationName <chr>,
+    ## #   teams.firstYearOfPlay <chr>, stat.gamesPlayed <int>, stat.wins <chr>,
+    ## #   stat.losses <chr>, stat.ot <chr>, stat.pts <chr>, stat.ptPctg <chr>,
+    ## #   stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>,
+    ## #   stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
+    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>,
+    ## #   stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>,
+    ## #   stat.shotsPerGame <chr>, stat.shotsAllowed <chr>,
+    ## #   stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>,
+    ## #   stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>,
+    ## #   stat.winOutshootOpp <chr>, stat.winOutshotByOpp <chr>,
+    ## #   stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>,
+    ## #   stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>,
+    ## #   stat.shootingPctg <dbl>, stat.savePctg <dbl>,
+    ## #   stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>,
+    ## #   stat.shootingPctRank <chr>, team.id <int>, team.name <chr>,
+    ## #   team.link <chr>, type.displayName <chr>, type.gameType.id <chr>,
+    ## #   type.gameType.description <chr>, type.gameType.postseason <lgl>,
+    ## #   teams.shortName <chr>, teams.officialSiteUrl <chr>,
+    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>,
+    ## #   teams.venue.link <chr>, teams.venue.city <chr>,
+    ## #   teams.venue.timeZone.id <chr>, teams.venue.timeZone.offset <int>,
+    ## #   teams.venue.timeZone.tz <chr>, teams.division.id <int>,
+    ## #   teams.division.name <chr>, teams.division.link <chr>,
+    ## #   teams.conference.id <int>, teams.conference.name <chr>,
+    ## #   teams.conference.link <chr>, teams.franchise.franchiseId <int>,
+    ## #   teams.franchise.teamName <chr>, teams.franchise.link <chr>
 
-# Getting basic ideas
+# GETTING BASIC IDEAS
 
 ## Choose two franchises to compare with
 
 ``` r
-# Look for interesting results from 'team-total' dataset. 
-a <- wrapfnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
+# create Winning percentage column and choose 2 comparable IDs
+a <- wrap_fnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
   mutate(Winchance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, Winchance)
-knitr::kable(a)
+knitr::kable(a, caption="< Find winning percent >")
 ```
 
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-data.franchiseId
-</th>
-<th style="text-align:right;">
-data.gamesPlayed
-</th>
-<th style="text-align:right;">
-data.wins
-</th>
-<th style="text-align:right;">
-Winchance
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-23
-</td>
-<td style="text-align:right;">
-2993
-</td>
-<td style="text-align:right;">
-1394
-</td>
-<td style="text-align:right;">
-0.4657534
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-22
-</td>
-<td style="text-align:right;">
-3788
-</td>
-<td style="text-align:right;">
-1688
-</td>
-<td style="text-align:right;">
-0.4456177
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-10
-</td>
-<td style="text-align:right;">
-6560
-</td>
-<td style="text-align:right;">
-2883
-</td>
-<td style="text-align:right;">
-0.4394817
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-16
-</td>
-<td style="text-align:right;">
-4171
-</td>
-<td style="text-align:right;">
-2079
-</td>
-<td style="text-align:right;">
-0.4984416
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-17
-</td>
-<td style="text-align:right;">
-4171
-</td>
-<td style="text-align:right;">
-1903
-</td>
-<td style="text-align:right;">
-0.4562455
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6626
-</td>
-<td style="text-align:right;">
-3241
-</td>
-<td style="text-align:right;">
-0.4891337
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-19
-</td>
-<td style="text-align:right;">
-3945
-</td>
-<td style="text-align:right;">
-1805
-</td>
-<td style="text-align:right;">
-0.4575412
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-6787
-</td>
-<td style="text-align:right;">
-3473
-</td>
-<td style="text-align:right;">
-0.5117136
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-30
-</td>
-<td style="text-align:right;">
-2195
-</td>
-<td style="text-align:right;">
-971
-</td>
-<td style="text-align:right;">
-0.4423690
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-6516
-</td>
-<td style="text-align:right;">
-2873
-</td>
-<td style="text-align:right;">
-0.4409147
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-33
-</td>
-<td style="text-align:right;">
-2109
-</td>
-<td style="text-align:right;">
-889
-</td>
-<td style="text-align:right;">
-0.4215268
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-31
-</td>
-<td style="text-align:right;">
-2194
-</td>
-<td style="text-align:right;">
-985
-</td>
-<td style="text-align:right;">
-0.4489517
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-24
-</td>
-<td style="text-align:right;">
-3633
-</td>
-<td style="text-align:right;">
-1700
-</td>
-<td style="text-align:right;">
-0.4679328
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-11
-</td>
-<td style="text-align:right;">
-6560
-</td>
-<td style="text-align:right;">
-2812
-</td>
-<td style="text-align:right;">
-0.4286585
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-12
-</td>
-<td style="text-align:right;">
-6293
-</td>
-<td style="text-align:right;">
-2891
-</td>
-<td style="text-align:right;">
-0.4593993
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-18
-</td>
-<td style="text-align:right;">
-4173
-</td>
-<td style="text-align:right;">
-1929
-</td>
-<td style="text-align:right;">
-0.4622574
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-21
-</td>
-<td style="text-align:right;">
-3154
-</td>
-<td style="text-align:right;">
-1497
-</td>
-<td style="text-align:right;">
-0.4746354
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-25
-</td>
-<td style="text-align:right;">
-3235
-</td>
-<td style="text-align:right;">
-1469
-</td>
-<td style="text-align:right;">
-0.4540958
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-20
-</td>
-<td style="text-align:right;">
-3945
-</td>
-<td style="text-align:right;">
-1649
-</td>
-<td style="text-align:right;">
-0.4179975
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-32
-</td>
-<td style="text-align:right;">
-2111
-</td>
-<td style="text-align:right;">
-990
-</td>
-<td style="text-align:right;">
-0.4689721
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-15
-</td>
-<td style="text-align:right;">
-2109
-</td>
-<td style="text-align:right;">
-1084
-</td>
-<td style="text-align:right;">
-0.5139877
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-14
-</td>
-<td style="text-align:right;">
-4172
-</td>
-<td style="text-align:right;">
-1754
-</td>
-<td style="text-align:right;">
-0.4204219
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-29
-</td>
-<td style="text-align:right;">
-2274
-</td>
-<td style="text-align:right;">
-1070
-</td>
-<td style="text-align:right;">
-0.4705365
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-15
-</td>
-<td style="text-align:right;">
-2062
-</td>
-<td style="text-align:right;">
-758
-</td>
-<td style="text-align:right;">
-0.3676043
-</td>
-</tr>
-</tbody>
-</table>
+| data.franchiseId | data.gamesPlayed | data.wins | Winchance |
+|-----------------:|-----------------:|----------:|----------:|
+|               23 |             2993 |      1394 | 0.4657534 |
+|               22 |             3788 |      1688 | 0.4456177 |
+|               10 |             6560 |      2883 | 0.4394817 |
+|               16 |             4171 |      2079 | 0.4984416 |
+|               17 |             4171 |      1903 | 0.4562455 |
+|                6 |             6626 |      3241 | 0.4891337 |
+|               19 |             3945 |      1805 | 0.4575412 |
+|                1 |             6787 |      3473 | 0.5117136 |
+|               30 |             2195 |       971 | 0.4423690 |
+|                5 |             6516 |      2873 | 0.4409147 |
+|               33 |             2109 |       889 | 0.4215268 |
+|               31 |             2194 |       985 | 0.4489517 |
+|               24 |             3633 |      1700 | 0.4679328 |
+|               11 |             6560 |      2812 | 0.4286585 |
+|               12 |             6293 |      2891 | 0.4593993 |
+|               18 |             4173 |      1929 | 0.4622574 |
+|               21 |             3154 |      1497 | 0.4746354 |
+|               25 |             3235 |      1469 | 0.4540958 |
+|               20 |             3945 |      1649 | 0.4179975 |
+|               32 |             2111 |       990 | 0.4689721 |
+|               15 |             2109 |      1084 | 0.5139877 |
+|               14 |             4172 |      1754 | 0.4204219 |
+|               29 |             2274 |      1070 | 0.4705365 |
+|               15 |             2062 |       758 | 0.3676043 |
+
+&lt; Find winning percent &gt;
 
 ID=1 had higher chance of win than ID=20 had. Let’s find the factors
 which affect team winning!
@@ -943,12 +730,12 @@ which affect team winning!
 ## Goals by skater position
 
 ``` r
-skr <- wrapfnc("record","franchise","skater-records")
-p <- ggplot(skr,aes(x=data.positionCode,y=data.goals,fill=data.positionCode))
-p+geom_col()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
+skr <- wrap_fnc("record","franchise","skater-records")
+p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
+p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -956,105 +743,79 @@ makes sense!
 ## Assists by skater position
 
 ``` r
-a <- ggplot(skr,aes(x=data.positionCode, y=data.assists, fill=data.positionCode))
-a+geom_col()+ scale_fill_brewer(palette = "PRGn")+labs(x="Position",y="Goals",color="Position",title="< Assists by Position >")
+b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.positionCode))
+b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-51-1.png)<!-- -->
 
 Center players assisted most and then Defenders did. I guessed wingers
 assisted most but the data tells different story. Interesting!!
 
 # FACTORS WHICH INFLUENCE TEAM WINNING
 
-## How skater assists affect winning?
+## Do skater assists affect winning?
 
 ``` r
 # Filter datasets and create new variables
-skid1 <- wrapfnc("record","franchise", "skater-records","franchiseId",1)
-skid20 <- wrapfnc("record","franchise", "skater-records","franchiseId",20)
+sk_id1 <- wrap_fnc("record","franchise", "skater-records","franchiseId",1)
+sk_id20 <- wrap_fnc("record","franchise", "skater-records","franchiseId",20)
 
 # Combine two datasets
-cosk <- rbind(skid1,skid20)
-cosk$data.franchiseId <- as.character(cosk$data.franchiseId)
+co_sk <- rbind(sk_id1,sk_id20)
+co_sk$data.franchiseId <- as.character(co_sk$data.franchiseId)
 
 # Summarise skaters assists records
-avgassi <- c(ID.1=mean(skid1$data.assists),ID.20=mean(skid20$data.assists))
-knitr::kable(avgassi,col.names = "Avg Assists")
+avg_assi <- c(ID.1=mean(sk_id1$data.assists),ID.20=mean(sk_id20$data.assists))
+knitr::kable(avg_assi,col.names = "Avg Assists")
 ```
 
-<table>
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-Avg Assists
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-ID.1
-</td>
-<td style="text-align:right;">
-41.49625
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-ID.20
-</td>
-<td style="text-align:right;">
-34.80696
-</td>
-</tr>
-</tbody>
-</table>
+|       | Avg Assists |
+|-------|------------:|
+| ID.1  |    41.49625 |
+| ID.20 |    34.80696 |
 
-We can see Franchise ID=1 had more average assists from the data.
+The franchise ID=1 had more average assists and higher winning chance
+than ID=20 did.
 
 ``` r
 # Create a graph to see the relationship between assists and goals
-sk <- ggplot(cosk, aes(x=data.assists, y=data.goals))
+sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-53-1.png)<!-- -->
 
-The franchise ID=1 had more average assists and higher winning chance
-than ID=20 did. This graph also tells us the relationship between
-assists and goals is linear. So, we can say **more assists leads higher
-chance of winning!**
+This graph also tells us the relationship between assists and goals is
+linear. So, we can say **more assists leads higher chance of winning!**
 
 ## How center position skater’s penalty time affect goal?
 
 ``` r
 # Summarise center position skater's penalty minutes records
-center <- cosk %>% filter(data.positionCode== "C")
-centerpt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
-centerpt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
+center <- co_sk %>% filter(data.positionCode== "C")
+center_pt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
+center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
   labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
 ```
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-54-1.png)<!-- -->
 
 The skaters who are in a center position scored more goals as they had
 more penalty minutes. What?? Interesting!
 
 ``` r
-ttotal <- wrapfnc("record","franchise","team-totals")
-w <- ggplot(ttotal,aes(data.penaltyMinutes,data.wins))
-g <- ggplot(ttotal,aes(data.penaltyMinutes,data.goalsFor))
+t_total <- wrap_fnc("record","franchise","team-totals")
+w <- ggplot(t_total,aes(data.penaltyMinutes,data.wins))
+g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
 g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 ```
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-55-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
@@ -1062,7 +823,7 @@ w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes a
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-25-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-55-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -1071,844 +832,79 @@ opposite story.
 ## Is playing at Home really an advantage?
 
 ``` r
-hwratio <- ttotal %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
+hw_ratio <- t_total %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
   select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
-knitr::kable(hwratio)
+knitr::kable(hw_ratio)
 ```
 
-<table>
-<thead>
-<tr>
-<th style="text-align:left;">
-data.teamName
-</th>
-<th style="text-align:right;">
-data.homeWins
-</th>
-<th style="text-align:right;">
-data.wins
-</th>
-<th style="text-align:right;">
-HomeWin.ratio
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-New Jersey Devils
-</td>
-<td style="text-align:right;">
-790
-</td>
-<td style="text-align:right;">
-1394
-</td>
-<td style="text-align:right;">
-0.5667145
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-New York Islanders
-</td>
-<td style="text-align:right;">
-963
-</td>
-<td style="text-align:right;">
-1688
-</td>
-<td style="text-align:right;">
-0.5704976
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-New York Rangers
-</td>
-<td style="text-align:right;">
-1614
-</td>
-<td style="text-align:right;">
-2883
-</td>
-<td style="text-align:right;">
-0.5598335
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Philadelphia Flyers
-</td>
-<td style="text-align:right;">
-1216
-</td>
-<td style="text-align:right;">
-2079
-</td>
-<td style="text-align:right;">
-0.5848966
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Pittsburgh Penguins
-</td>
-<td style="text-align:right;">
-1138
-</td>
-<td style="text-align:right;">
-1903
-</td>
-<td style="text-align:right;">
-0.5980032
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Boston Bruins
-</td>
-<td style="text-align:right;">
-1885
-</td>
-<td style="text-align:right;">
-3241
-</td>
-<td style="text-align:right;">
-0.5816106
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Buffalo Sabres
-</td>
-<td style="text-align:right;">
-1053
-</td>
-<td style="text-align:right;">
-1805
-</td>
-<td style="text-align:right;">
-0.5833795
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Montréal Canadiens
-</td>
-<td style="text-align:right;">
-2038
-</td>
-<td style="text-align:right;">
-3473
-</td>
-<td style="text-align:right;">
-0.5868126
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Ottawa Senators
-</td>
-<td style="text-align:right;">
-533
-</td>
-<td style="text-align:right;">
-971
-</td>
-<td style="text-align:right;">
-0.5489186
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Toronto Maple Leafs
-</td>
-<td style="text-align:right;">
-1702
-</td>
-<td style="text-align:right;">
-2873
-</td>
-<td style="text-align:right;">
-0.5924121
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Atlanta Thrashers
-</td>
-<td style="text-align:right;">
-183
-</td>
-<td style="text-align:right;">
-342
-</td>
-<td style="text-align:right;">
-0.5350877
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Carolina Hurricanes
-</td>
-<td style="text-align:right;">
-453
-</td>
-<td style="text-align:right;">
-827
-</td>
-<td style="text-align:right;">
-0.5477630
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Florida Panthers
-</td>
-<td style="text-align:right;">
-485
-</td>
-<td style="text-align:right;">
-889
-</td>
-<td style="text-align:right;">
-0.5455568
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Tampa Bay Lightning
-</td>
-<td style="text-align:right;">
-559
-</td>
-<td style="text-align:right;">
-985
-</td>
-<td style="text-align:right;">
-0.5675127
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Washington Capitals
-</td>
-<td style="text-align:right;">
-959
-</td>
-<td style="text-align:right;">
-1700
-</td>
-<td style="text-align:right;">
-0.5641176
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Chicago Blackhawks
-</td>
-<td style="text-align:right;">
-1655
-</td>
-<td style="text-align:right;">
-2812
-</td>
-<td style="text-align:right;">
-0.5885491
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Detroit Red Wings
-</td>
-<td style="text-align:right;">
-1741
-</td>
-<td style="text-align:right;">
-2891
-</td>
-<td style="text-align:right;">
-0.6022138
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Nashville Predators
-</td>
-<td style="text-align:right;">
-477
-</td>
-<td style="text-align:right;">
-852
-</td>
-<td style="text-align:right;">
-0.5598592
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-St. Louis Blues
-</td>
-<td style="text-align:right;">
-1122
-</td>
-<td style="text-align:right;">
-1929
-</td>
-<td style="text-align:right;">
-0.5816485
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Calgary Flames
-</td>
-<td style="text-align:right;">
-863
-</td>
-<td style="text-align:right;">
-1497
-</td>
-<td style="text-align:right;">
-0.5764863
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Colorado Avalanche
-</td>
-<td style="text-align:right;">
-543
-</td>
-<td style="text-align:right;">
-1007
-</td>
-<td style="text-align:right;">
-0.5392254
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Edmonton Oilers
-</td>
-<td style="text-align:right;">
-830
-</td>
-<td style="text-align:right;">
-1469
-</td>
-<td style="text-align:right;">
-0.5650102
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Vancouver Canucks
-</td>
-<td style="text-align:right;">
-943
-</td>
-<td style="text-align:right;">
-1649
-</td>
-<td style="text-align:right;">
-0.5718617
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Anaheim Ducks
-</td>
-<td style="text-align:right;">
-557
-</td>
-<td style="text-align:right;">
-990
-</td>
-<td style="text-align:right;">
-0.5626263
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Dallas Stars
-</td>
-<td style="text-align:right;">
-594
-</td>
-<td style="text-align:right;">
-1084
-</td>
-<td style="text-align:right;">
-0.5479705
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Los Angeles Kings
-</td>
-<td style="text-align:right;">
-1027
-</td>
-<td style="text-align:right;">
-1754
-</td>
-<td style="text-align:right;">
-0.5855188
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Phoenix Coyotes
-</td>
-<td style="text-align:right;">
-340
-</td>
-<td style="text-align:right;">
-615
-</td>
-<td style="text-align:right;">
-0.5528455
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-San Jose Sharks
-</td>
-<td style="text-align:right;">
-589
-</td>
-<td style="text-align:right;">
-1070
-</td>
-<td style="text-align:right;">
-0.5504673
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Columbus Blue Jackets
-</td>
-<td style="text-align:right;">
-390
-</td>
-<td style="text-align:right;">
-678
-</td>
-<td style="text-align:right;">
-0.5752212
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Minnesota Wild
-</td>
-<td style="text-align:right;">
-429
-</td>
-<td style="text-align:right;">
-759
-</td>
-<td style="text-align:right;">
-0.5652174
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Minnesota North Stars
-</td>
-<td style="text-align:right;">
-477
-</td>
-<td style="text-align:right;">
-758
-</td>
-<td style="text-align:right;">
-0.6292876
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Quebec Nordiques
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-497
-</td>
-<td style="text-align:right;">
-0.6036217
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Winnipeg Jets (1979)
-</td>
-<td style="text-align:right;">
-307
-</td>
-<td style="text-align:right;">
-506
-</td>
-<td style="text-align:right;">
-0.6067194
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Hartford Whalers
-</td>
-<td style="text-align:right;">
-318
-</td>
-<td style="text-align:right;">
-534
-</td>
-<td style="text-align:right;">
-0.5955056
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Colorado Rockies
-</td>
-<td style="text-align:right;">
-78
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-0.6902655
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Ottawa Senators (1917)
-</td>
-<td style="text-align:right;">
-160
-</td>
-<td style="text-align:right;">
-258
-</td>
-<td style="text-align:right;">
-0.6201550
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Hamilton Tigers
-</td>
-<td style="text-align:right;">
-33
-</td>
-<td style="text-align:right;">
-47
-</td>
-<td style="text-align:right;">
-0.7021277
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Pittsburgh Pirates
-</td>
-<td style="text-align:right;">
-41
-</td>
-<td style="text-align:right;">
-67
-</td>
-<td style="text-align:right;">
-0.6119403
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Philadelphia Quakers
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-0.7500000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Detroit Cougars
-</td>
-<td style="text-align:right;">
-35
-</td>
-<td style="text-align:right;">
-64
-</td>
-<td style="text-align:right;">
-0.5468750
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Montreal Wanderers
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1.0000000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Quebec Bulldogs
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-1.0000000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Montreal Maroons
-</td>
-<td style="text-align:right;">
-156
-</td>
-<td style="text-align:right;">
-271
-</td>
-<td style="text-align:right;">
-0.5756458
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-New York Americans
-</td>
-<td style="text-align:right;">
-147
-</td>
-<td style="text-align:right;">
-239
-</td>
-<td style="text-align:right;">
-0.6150628
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-St. Louis Eagles
-</td>
-<td style="text-align:right;">
-7
-</td>
-<td style="text-align:right;">
-11
-</td>
-<td style="text-align:right;">
-0.6363636
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Oakland Seals
-</td>
-<td style="text-align:right;">
-44
-</td>
-<td style="text-align:right;">
-66
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Atlanta Flames
-</td>
-<td style="text-align:right;">
-161
-</td>
-<td style="text-align:right;">
-268
-</td>
-<td style="text-align:right;">
-0.6007463
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Kansas City Scouts
-</td>
-<td style="text-align:right;">
-20
-</td>
-<td style="text-align:right;">
-27
-</td>
-<td style="text-align:right;">
-0.7407407
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Cleveland Barons
-</td>
-<td style="text-align:right;">
-28
-</td>
-<td style="text-align:right;">
-47
-</td>
-<td style="text-align:right;">
-0.5957447
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Detroit Falcons
-</td>
-<td style="text-align:right;">
-25
-</td>
-<td style="text-align:right;">
-34
-</td>
-<td style="text-align:right;">
-0.7352941
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Brooklyn Americans
-</td>
-<td style="text-align:right;">
-10
-</td>
-<td style="text-align:right;">
-16
-</td>
-<td style="text-align:right;">
-0.6250000
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Winnipeg Jets
-</td>
-<td style="text-align:right;">
-207
-</td>
-<td style="text-align:right;">
-382
-</td>
-<td style="text-align:right;">
-0.5418848
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Arizona Coyotes
-</td>
-<td style="text-align:right;">
-116
-</td>
-<td style="text-align:right;">
-214
-</td>
-<td style="text-align:right;">
-0.5420561
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Vegas Golden Knights
-</td>
-<td style="text-align:right;">
-96
-</td>
-<td style="text-align:right;">
-173
-</td>
-<td style="text-align:right;">
-0.5549133
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-California Golden Seals
-</td>
-<td style="text-align:right;">
-84
-</td>
-<td style="text-align:right;">
-116
-</td>
-<td style="text-align:right;">
-0.7241379
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Toronto Arenas
-</td>
-<td style="text-align:right;">
-15
-</td>
-<td style="text-align:right;">
-18
-</td>
-<td style="text-align:right;">
-0.8333333
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Toronto St. Patricks
-</td>
-<td style="text-align:right;">
-73
-</td>
-<td style="text-align:right;">
-109
-</td>
-<td style="text-align:right;">
-0.6697248
-</td>
-</tr>
-</tbody>
-</table>
+| data.teamName           | data.homeWins | data.wins | HomeWin.ratio |
+|:------------------------|--------------:|----------:|--------------:|
+| New Jersey Devils       |           790 |      1394 |     0.5667145 |
+| New York Islanders      |           963 |      1688 |     0.5704976 |
+| New York Rangers        |          1614 |      2883 |     0.5598335 |
+| Philadelphia Flyers     |          1216 |      2079 |     0.5848966 |
+| Pittsburgh Penguins     |          1138 |      1903 |     0.5980032 |
+| Boston Bruins           |          1885 |      3241 |     0.5816106 |
+| Buffalo Sabres          |          1053 |      1805 |     0.5833795 |
+| Montréal Canadiens      |          2038 |      3473 |     0.5868126 |
+| Ottawa Senators         |           533 |       971 |     0.5489186 |
+| Toronto Maple Leafs     |          1702 |      2873 |     0.5924121 |
+| Atlanta Thrashers       |           183 |       342 |     0.5350877 |
+| Carolina Hurricanes     |           453 |       827 |     0.5477630 |
+| Florida Panthers        |           485 |       889 |     0.5455568 |
+| Tampa Bay Lightning     |           559 |       985 |     0.5675127 |
+| Washington Capitals     |           959 |      1700 |     0.5641176 |
+| Chicago Blackhawks      |          1655 |      2812 |     0.5885491 |
+| Detroit Red Wings       |          1741 |      2891 |     0.6022138 |
+| Nashville Predators     |           477 |       852 |     0.5598592 |
+| St. Louis Blues         |          1122 |      1929 |     0.5816485 |
+| Calgary Flames          |           863 |      1497 |     0.5764863 |
+| Colorado Avalanche      |           543 |      1007 |     0.5392254 |
+| Edmonton Oilers         |           830 |      1469 |     0.5650102 |
+| Vancouver Canucks       |           943 |      1649 |     0.5718617 |
+| Anaheim Ducks           |           557 |       990 |     0.5626263 |
+| Dallas Stars            |           594 |      1084 |     0.5479705 |
+| Los Angeles Kings       |          1027 |      1754 |     0.5855188 |
+| Phoenix Coyotes         |           340 |       615 |     0.5528455 |
+| San Jose Sharks         |           589 |      1070 |     0.5504673 |
+| Columbus Blue Jackets   |           390 |       678 |     0.5752212 |
+| Minnesota Wild          |           429 |       759 |     0.5652174 |
+| Minnesota North Stars   |           477 |       758 |     0.6292876 |
+| Quebec Nordiques        |           300 |       497 |     0.6036217 |
+| Winnipeg Jets (1979)    |           307 |       506 |     0.6067194 |
+| Hartford Whalers        |           318 |       534 |     0.5955056 |
+| Colorado Rockies        |            78 |       113 |     0.6902655 |
+| Ottawa Senators (1917)  |           160 |       258 |     0.6201550 |
+| Hamilton Tigers         |            33 |        47 |     0.7021277 |
+| Pittsburgh Pirates      |            41 |        67 |     0.6119403 |
+| Philadelphia Quakers    |             3 |         4 |     0.7500000 |
+| Detroit Cougars         |            35 |        64 |     0.5468750 |
+| Montreal Wanderers      |             1 |         1 |     1.0000000 |
+| Quebec Bulldogs         |             4 |         4 |     1.0000000 |
+| Montreal Maroons        |           156 |       271 |     0.5756458 |
+| New York Americans      |           147 |       239 |     0.6150628 |
+| St. Louis Eagles        |             7 |        11 |     0.6363636 |
+| Oakland Seals           |            44 |        66 |     0.6666667 |
+| Atlanta Flames          |           161 |       268 |     0.6007463 |
+| Kansas City Scouts      |            20 |        27 |     0.7407407 |
+| Cleveland Barons        |            28 |        47 |     0.5957447 |
+| Detroit Falcons         |            25 |        34 |     0.7352941 |
+| Brooklyn Americans      |            10 |        16 |     0.6250000 |
+| Winnipeg Jets           |           207 |       382 |     0.5418848 |
+| Arizona Coyotes         |           116 |       214 |     0.5420561 |
+| Vegas Golden Knights    |            96 |       173 |     0.5549133 |
+| California Golden Seals |            84 |       116 |     0.7241379 |
+| Toronto Arenas          |            15 |        18 |     0.8333333 |
+| Toronto St. Patricks    |            73 |       109 |     0.6697248 |
 
 ``` r
-r <- ggplot(hwratio,aes(x=HomeWin.ratio))
+r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-56-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
-Playing at Home really an advantage!!
-
-## Stat
-
-``` r
-stat <- wrapfnc("stat","teams")
-# PIck odd number rows
-stat <- stat[seq(1,62,2),]
-```
+Playing at Home really an advantage!!  
+According to all above **assists**, **penalty minutes** and **Home
+game** help teams win games.
