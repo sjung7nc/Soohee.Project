@@ -26,6 +26,7 @@ Soohee Jung
         with](#choose-two-franchises-to-compare-with)
     -   [Goals by skater position](#goals-by-skater-position)
     -   [Assists by skater position](#assists-by-skater-position)
+    -   [Some Numerical summaries](#some-numerical-summaries)
 -   [FACTORS WHICH INFLUENCE TEAM
     WINNING](#factors-which-influence-team-winning)
     -   [Do skater assists affect
@@ -730,12 +731,14 @@ which affect team winning!
 ## Goals by skater position
 
 ``` r
+# Get skater records data
 skr <- wrap_fnc("record","franchise","skater-records")
+# Create box-plot
 p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -747,10 +750,31 @@ b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.
 b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-51-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
 
 Center players assisted most and then Defenders did. I guessed wingers
 assisted most but the data tells different story. Interesting!!
+
+## Some Numerical summaries
+
+``` r
+# How many skaters by position
+table(skr$data.positionCode)
+```
+
+    ## 
+    ##    C    D    L    R 
+    ## 4275 5723 3740 3471
+
+``` r
+# 2 = regular Season, 3 = play offs
+w<-wrap_fnc("record","franchise","team-totals")
+table(w$data.gameTypeId)
+```
+
+    ## 
+    ##  2  3 
+    ## 57 48
 
 # FACTORS WHICH INFLUENCE TEAM WINNING
 
@@ -784,7 +808,7 @@ sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
 sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-53-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
 
 This graph also tells us the relationship between assists and goals is
 linear. So, we can say **more assists leads higher chance of winning!**
@@ -801,7 +825,7 @@ center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-54-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
 
 The skaters who are in a center position scored more goals as they had
 more penalty minutes. What?? Interesting!
@@ -815,7 +839,7 @@ g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes 
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-55-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
@@ -823,7 +847,7 @@ w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes a
 
     ## Smoothing formula not specified. Using: y ~ x
 
-![](README_files/figure-gfm/unnamed-chunk-55-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-31-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -902,7 +926,7 @@ r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-56-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
 Playing at Home really an advantage!!  

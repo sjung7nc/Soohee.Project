@@ -208,7 +208,9 @@ ID=1 had higher chance of win than ID=20 had. Let's find the factors which affec
 
 ## Goals by skater position  
 ```{r}
+# Get skater records data
 skr <- wrap_fnc("record","franchise","skater-records")
+# Create box-plot
 p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
 ```
@@ -222,6 +224,15 @@ b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fil
 ```
 
 Center players assisted most and then Defenders did. I guessed wingers assisted most but the data tells different story. Interesting!!  
+
+## Some Numerical summaries  
+```{r}
+# How many skaters by position
+table(skr$data.positionCode)
+# 2 = regular Season, 3 = play offs
+w<-wrap_fnc("record","franchise","team-totals")
+table(w$data.gameTypeId)
+```
 
 # FACTORS WHICH INFLUENCE TEAM WINNING  
 ## Do skater assists affect winning?  
