@@ -222,7 +222,7 @@ p <- ggplot(skaters,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",fill="Position",title="< Most Goals by skater Position >")
 ```
 
-Center position skater scored most goals and then right winger did. That makes sense!  
+Right wingers scored most goals and then Center skaters did. Ok, I guessed center skaters scored most but their numbers are close so not a big surprise. That makes sense!  
 
 ## Assists by skater position  
 ```{r}
