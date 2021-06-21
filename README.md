@@ -27,8 +27,8 @@ Soohee Jung
     -   [Goals by skater position](#goals-by-skater-position)
     -   [Assists by skater position](#assists-by-skater-position)
     -   [Some Numerical summaries](#some-numerical-summaries)
--   [FACTORS WHICH INFLUENCE TEAM
-    WINNING](#factors-which-influence-team-winning)
+-   [FACTORS WHICH INFLUENCED TEAM
+    WINNING](#factors-which-influenced-team-winning)
     -   [Do skater assists affect
         winning?](#do-skater-assists-affect-winning)
     -   [How center position skater’s penalty time affect
@@ -707,54 +707,75 @@ tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 
 ``` r
 # create Winning percentage column and choose 2 comparable franchise IDs
-a <- wrap_fnc("record","franchise","team-totals") %>% filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
-  mutate(win_chance=data.wins/data.gamesPlayed) %>% select(data.franchiseId,data.gamesPlayed, data.wins, win_chance)
+a <- wrap_fnc("record","franchise","team-totals") %>% 
+  filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
+  mutate(win_chance=data.wins/data.gamesPlayed) %>% 
+  select(data.franchiseId,data.gamesPlayed, data.wins, win_chance) %>% arrange(win_chance)
 knitr::kable(a, col.names=gsub("data.","",names(a)), align="cccc",  caption="Winning percentage by Franchise ID")
 ```
 
 | franchiseId | gamesPlayed | wins | win\_chance |
 |:-----------:|:-----------:|:----:|:-----------:|
-|     23      |    2993     | 1394 |  0.4657534  |
-|     22      |    3788     | 1688 |  0.4456177  |
-|     10      |    6560     | 2883 |  0.4394817  |
-|     16      |    4171     | 2079 |  0.4984416  |
-|     17      |    4171     | 1903 |  0.4562455  |
-|      6      |    6626     | 3241 |  0.4891337  |
-|     19      |    3945     | 1805 |  0.4575412  |
-|      1      |    6787     | 3473 |  0.5117136  |
-|     30      |    2195     | 971  |  0.4423690  |
-|      5      |    6516     | 2873 |  0.4409147  |
+|     15      |    2062     | 758  |  0.3676043  |
+|     20      |    3945     | 1649 |  0.4179975  |
+|     14      |    4172     | 1754 |  0.4204219  |
 |     33      |    2109     | 889  |  0.4215268  |
-|     31      |    2194     | 985  |  0.4489517  |
-|     24      |    3633     | 1700 |  0.4679328  |
 |     11      |    6560     | 2812 |  0.4286585  |
+|     10      |    6560     | 2883 |  0.4394817  |
+|      5      |    6516     | 2873 |  0.4409147  |
+|     30      |    2195     | 971  |  0.4423690  |
+|     22      |    3788     | 1688 |  0.4456177  |
+|     31      |    2194     | 985  |  0.4489517  |
+|     25      |    3235     | 1469 |  0.4540958  |
+|     17      |    4171     | 1903 |  0.4562455  |
+|     19      |    3945     | 1805 |  0.4575412  |
 |     12      |    6293     | 2891 |  0.4593993  |
 |     18      |    4173     | 1929 |  0.4622574  |
-|     21      |    3154     | 1497 |  0.4746354  |
-|     25      |    3235     | 1469 |  0.4540958  |
-|     20      |    3945     | 1649 |  0.4179975  |
+|     23      |    2993     | 1394 |  0.4657534  |
+|     24      |    3633     | 1700 |  0.4679328  |
 |     32      |    2111     | 990  |  0.4689721  |
-|     15      |    2109     | 1084 |  0.5139877  |
-|     14      |    4172     | 1754 |  0.4204219  |
 |     29      |    2274     | 1070 |  0.4705365  |
-|     15      |    2062     | 758  |  0.3676043  |
+|     21      |    3154     | 1497 |  0.4746354  |
+|      6      |    6626     | 3241 |  0.4891337  |
+|     16      |    4171     | 2079 |  0.4984416  |
+|      1      |    6787     | 3473 |  0.5117136  |
+|     15      |    2109     | 1084 |  0.5139877  |
 
 Winning percentage by Franchise ID
 
-ID=1 had higher chance of win than ID=20 had. Let’s find the factors
-which affect team winning!
+ID=1 had higher chance of win(51.2%) than ID=20 had(41.8%). Let’s find
+the factors which affected these different results!
 
 ## Goals by skater position
 
 ``` r
-# Get skater records data
-skr <- wrap_fnc("record","franchise","skater-records")
-# Create a box-plot
-p <- ggplot(skr,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
-p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",color="Position",title="< Goals by Position >")
+# Full-join skater and goalie records 
+sk_go_join=full_join(wrap_fnc("record","franchise","goalie-records"),wrap_fnc("record","franchise","skater-records"))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
+    ## Joining, by = c("data.id", "data.activePlayer", "data.firstName", "data.franchiseId", "data.franchiseName", "data.gameTypeId", "data.gamesPlayed", "data.lastName", "data.playerId", "data.positionCode", "data.rookieGamesPlayed", "data.seasons", "total")
+
+``` r
+# Filter joined data to choose skaters
+skaters <- sk_go_join %>% filter(data.positionCode != "G")
+most_goal <- skaters %>% group_by(data.positionCode) %>% summarise(Goals=mean(data.mostGoalsOneSeason))
+knitr::kable(most_goal, col.names = c("Position","Avg Goals"))
+```
+
+| Position | Avg Goals |
+|:---------|----------:|
+| C        |  9.377076 |
+| D        |  3.394374 |
+| L        |  8.760695 |
+| R        |  9.900029 |
+
+``` r
+# Create a box-plot
+p <- ggplot(skaters,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
+p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",fill="Position",title="< Most Goals by skater Position >")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -762,32 +783,54 @@ makes sense!
 ## Assists by skater position
 
 ``` r
-# Create a bar-plot
-b <- ggplot(skr,aes(x=data.positionCode, y=data.mostAssistsOneSeason, fill=data.positionCode))
-b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Assists by Position >")
+# skater's average assists by position
+most_assi <- skaters %>% group_by(data.positionCode) %>% summarise(assist=mean(data.mostAssistsOneSeason))
+knitr::kable(most_assi, col.names = c("Position","Assists"))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
+| Position |  Assists |
+|:---------|---------:|
+| C        | 14.02480 |
+| D        | 10.49834 |
+| L        | 10.90561 |
+| R        | 11.92826 |
 
-Center players assisted most and then Defenders did. I guessed wingers
-assisted most but the data tells different story. Interesting!!
+``` r
+# Create a bar-plot
+b <- ggplot(most_assi,aes(x=data.positionCode, y=assist, fill=data.positionCode))
+b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Average Assists by skater Position >")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+
+Center players assisted most and then right wingers did. I guessed both
+wingers assisted most but the data tells different story. Interesting!!
 
 ## Some Numerical summaries
 
 ``` r
-# How many skaters by position
-F_join=full_join(wrap_fnc("record","franchise","goalie-records"),wrap_fnc("record","franchise","skater-records"))
-```
-
-    ## Joining, by = c("data.id", "data.activePlayer", "data.firstName", "data.franchiseId", "data.franchiseName", "data.gameTypeId", "data.gamesPlayed", "data.lastName", "data.playerId", "data.positionCode", "data.rookieGamesPlayed", "data.seasons", "total")
-
-``` r
-table(F_join$data.positionCode)
+# How many players by position
+table(sk_go_join$data.positionCode)
 ```
 
     ## 
     ##    C    D    G    L    R 
     ## 4275 5723 1078 3740 3471
+
+``` r
+# Average Rookie games played
+rookie <- sk_go_join %>% group_by(data.positionCode) %>% 
+  summarise(rookieGames=mean(data.rookieGamesPlayed, na.rm=TRUE))
+knitr::kable(rookie, col.names = c("Position","Rookie Game"))
+```
+
+| Position | Rookie Game |
+|:---------|------------:|
+| C        |    32.48908 |
+| D        |    31.27485 |
+| G        |    36.92053 |
+| L        |    30.35620 |
+| R        |    30.73169 |
 
 ``` r
 # 2 = regular Season, 3 = play offs
@@ -799,48 +842,45 @@ table(w$data.gameTypeId)
     ##  2  3 
     ## 57 48
 
-# FACTORS WHICH INFLUENCE TEAM WINNING
+# FACTORS WHICH INFLUENCED TEAM WINNING
 
 ## Do skater assists affect winning?
 
 ``` r
-# Filter datasets and create new variables
-sk_id1 <- wrap_fnc("record","franchise", "skater-records","franchiseId",1)
-sk_id20 <- wrap_fnc("record","franchise", "skater-records","franchiseId",20)
-
-# Combine two datasets
-co_sk <- rbind(sk_id1,sk_id20)
-co_sk$data.franchiseId <- as.character(co_sk$data.franchiseId)
-
+# Filter datasets to choose 2 teams with ID=1 and ID=20
+two_ID <- skaters %>% filter(data.franchiseId==1 | data.franchiseId==20)
+two_ID$data.franchiseId <- as.character(two_ID$data.franchiseId)
 # Summarise skaters assists records
-avg_assi <- c(ID.1=mean(sk_id1$data.assists),ID.20=mean(sk_id20$data.assists))
-knitr::kable(avg_assi,col.names = "Avg Assists")
+avg_assi <- two_ID %>% group_by(data.franchiseId) %>% summarise(avgassi=mean(data.assists))
+knitr::kable(avg_assi,col.names = c("Franchise ID","Avg Assists"))
 ```
 
-|       | Avg Assists |
-|-------|------------:|
-| ID.1  |    41.49625 |
-| ID.20 |    34.80696 |
+| Franchise ID | Avg Assists |
+|:-------------|------------:|
+| 1            |    41.49625 |
+| 20           |    34.80696 |
 
 The franchise ID=1 had more average assists and higher winning chance
 than ID=20 did.
 
 ``` r
 # Create a scatter-plot to see the relationship between assists and goals
-sk <- ggplot(co_sk, aes(x=data.assists, y=data.goals))
-sk+geom_jitter(aes(color=data.franchiseId))+labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists and Goals >")
+ag <- ggplot(two_ID, aes(x=data.assists, y=data.goals))
+ag + geom_jitter(aes(color=data.franchiseId)) +
+  labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists vs Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-85-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 This graph also tells us the relationship between assists and goals is
-linear. So, we can say **more assists leads higher chance of winning!**
+linear. So, we can say **more assists brought more goals and higher
+chance of winning!**
 
 ## How center position skater’s penalty time affect goal?
 
 ``` r
 # Summarise center position skater's penalty minutes records
-center <- co_sk %>% filter(data.positionCode== "C")
+center <- two_ID %>% filter(data.positionCode== "C")
 center_pt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
 center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
   labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
@@ -848,10 +888,10 @@ center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
-The skaters who are in a center position scored more goals as they had
-more penalty minutes. What?? Interesting!
+The center position skaters scored more goals as they had more penalty
+minutes. What?? Interesting!
 
 ``` r
 # Penalty minutes vs Goals(Wins)
@@ -861,13 +901,13 @@ g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
 g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-87-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-78-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -949,10 +989,10 @@ r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
 Playing at Home really an advantage!!
 
-According to all above **assists**, **penalty minutes** and **Home
-game** helped teams win the games.
+According to all above **More assists**, **More penalty minutes** and
+**Home game** helped teams win the games.
