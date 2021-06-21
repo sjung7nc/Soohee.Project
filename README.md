@@ -1,4 +1,4 @@
-Project I
+Project I: NHL.API
 ================
 Soohee Jung
 6/11/2021
@@ -775,7 +775,7 @@ p <- ggplot(skaters,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.
 p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",fill="Position",title="< Most Goals by skater Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 Center position skater scored most goals and then right winger did. That
 makes sense!
@@ -801,7 +801,7 @@ b <- ggplot(most_assi,aes(x=data.positionCode, y=assist, fill=data.positionCode)
 b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Average Assists by skater Position >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 Center players assisted most and then right wingers did. I guessed both
 wingers assisted most but the data tells different story. Interesting!!
@@ -870,7 +870,7 @@ ag + geom_jitter(aes(color=data.franchiseId)) +
   labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists vs Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 This graph also tells us the relationship between assists and goals is
 linear. So, we can say **more assists brought more goals and higher
@@ -888,7 +888,7 @@ center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
 
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](README_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 The center position skaters scored more goals as they had more penalty
 minutes. What?? Interesting!
@@ -901,13 +901,13 @@ g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
 g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ``` r
 w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-78-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-19-2.png)<!-- -->
 
 What a surprising result!! I thought the penalty minutes would affects
 goals and winnings in negative ways, but the graphs tell us totally
@@ -989,7 +989,7 @@ r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 All teams had over 50% of winning chance when they played at home.
 Playing at Home really an advantage!!
