@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 This document is a vignette to show how retrieve data from an [API](https://en.wikipedia.org/wiki/API). I will use the NHL API to pull data and then summaries and explore the data pulled.  
+
 # Required Packages  
 To use the functions for interacting with the NHL API, I used the following packages:  
 ```{r message=FALSE}
@@ -23,6 +24,7 @@ library(xml2)
 
 # API interaction Functions  
 I defined the functions to interact with the [NHL Record API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md) and [NHL Stats API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).  
+
 ## Record-API Functions  
 
 ```{r message=FALSE}

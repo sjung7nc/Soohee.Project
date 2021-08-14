@@ -3,7 +3,9 @@ NHL.API.Vignette
 Soohee Jung
 6/11/2021
 
+-   [Required Packages](#required-packages)
 -   [API interaction Functions](#api-interaction-functions)
+    -   [Record-API Functions](#record-api-functions)
     -   [Stat-API function](#stat-api-function)
     -   [Wrapper function to call the functions
         above](#wrapper-function-to-call-the-functions-above)
@@ -36,8 +38,10 @@ Soohee Jung
 
 This document is a vignette to show how retrieve data from an
 [API](https://en.wikipedia.org/wiki/API). I will use the NHL API to pull
-data and then summaries and explore the data pulled.  
-\# Required Packages  
+data and then summaries and explore the data pulled.
+
+# Required Packages
+
 To use the functions for interacting with the NHL API, I used the
 following packages:
 
@@ -53,8 +57,9 @@ library(xml2)
 I defined the functions to interact with the [NHL Record
 API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md) and
 [NHL Stats
-API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).  
-\#\# Record-API Functions
+API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).
+
+## Record-API Functions
 
 ``` r
 # to mapping Franchise ids vs Full names vs Most recent team ID
@@ -263,9 +268,6 @@ head(wrap_fnc("record","franchise"))
 ``` r
 tbl_df(wrap_fnc("record","franchise","team-totals"))
 ```
-
-    ## Warning: `tbl_df()` was deprecated in dplyr 1.0.0.
-    ## Please use `tibble::as_tibble()` instead.
 
     ## # A tibble: 106 x 31
     ##    data.id data.activeFranc~ data.firstSeaso~ data.franchiseId data.gameTypeId data.gamesPlayed data.goalsAgain~ data.goalsFor data.homeLosses data.homeOverti~ data.homeTies
