@@ -1,11 +1,9 @@
-Project I: NHL.API
+NHL.API.Vignette
 ================
 Soohee Jung
 6/11/2021
 
--   [FUNCTIONS](#functions)
-    -   [Required Packages](#required-packages)
-    -   [Record-API Functions](#record-api-functions)
+-   [API interaction Functions](#api-interaction-functions)
     -   [Stat-API function](#stat-api-function)
     -   [Wrapper function to call the functions
         above](#wrapper-function-to-call-the-functions-above)
@@ -36,19 +34,27 @@ Soohee Jung
     -   [Is playing at Home really an
         advantage?](#is-playing-at-home-really-an-advantage)
 
-# FUNCTIONS
-
-## Required Packages
+This document is a vignette to show how retrieve data from an
+[API](https://en.wikipedia.org/wiki/API). I will use the NHL API to pull
+data and then summaries and explore the data pulled.  
+\# Required Packages  
+To use the functions for interacting with the NHL API, I used the
+following packages:
 
 ``` r
 library(httr)
-library(jsonlite)
-library(tidyverse)
-library(ggplot2)
+library(jsonlite) #needs for API interaction
+library(tidyverse) #tons of useful features for data manipulating and visualization
 library(xml2)
 ```
 
-## Record-API Functions
+# API interaction Functions
+
+I defined the functions to interact with the [NHL Record
+API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md) and
+[NHL Stats
+API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).  
+\#\# Record-API Functions
 
 ``` r
 # to mapping Franchise ids vs Full names vs Most recent team ID
@@ -208,86 +214,46 @@ head(wrap_fnc("record","franchise"))
 ```
 
     ## $data
-    ##    id firstSeasonId              fullName lastSeasonId mostRecentTeamId
-    ## 1   1      19171918    Montréal Canadiens           NA                8
-    ## 2   2      19171918    Montreal Wanderers     19171918               41
-    ## 3   3      19171918      St. Louis Eagles     19341935               45
-    ## 4   4      19191920       Hamilton Tigers     19241925               37
-    ## 5   5      19171918   Toronto Maple Leafs           NA               10
-    ## 6   6      19241925         Boston Bruins           NA                6
-    ## 7   7      19241925      Montreal Maroons     19371938               43
-    ## 8   8      19251926    Brooklyn Americans     19411942               51
-    ## 9   9      19251926  Philadelphia Quakers     19301931               39
-    ## 10 10      19261927      New York Rangers           NA                3
-    ## 11 11      19261927    Chicago Blackhawks           NA               16
-    ## 12 12      19261927     Detroit Red Wings           NA               17
-    ## 13 13      19671968      Cleveland Barons     19771978               49
-    ## 14 14      19671968     Los Angeles Kings           NA               26
-    ## 15 15      19671968          Dallas Stars           NA               25
-    ## 16 16      19671968   Philadelphia Flyers           NA                4
-    ## 17 17      19671968   Pittsburgh Penguins           NA                5
-    ## 18 18      19671968       St. Louis Blues           NA               19
-    ## 19 19      19701971        Buffalo Sabres           NA                7
-    ## 20 20      19701971     Vancouver Canucks           NA               23
-    ## 21 21      19721973        Calgary Flames           NA               20
-    ## 22 22      19721973    New York Islanders           NA                2
-    ## 23 23      19741975     New Jersey Devils           NA                1
-    ## 24 24      19741975   Washington Capitals           NA               15
-    ## 25 25      19791980       Edmonton Oilers           NA               22
-    ## 26 26      19791980   Carolina Hurricanes           NA               12
-    ## 27 27      19791980    Colorado Avalanche           NA               21
-    ## 28 28      19791980       Arizona Coyotes           NA               53
-    ## 29 29      19911992       San Jose Sharks           NA               28
-    ## 30 30      19921993       Ottawa Senators           NA                9
-    ## 31 31      19921993   Tampa Bay Lightning           NA               14
-    ## 32 32      19931994         Anaheim Ducks           NA               24
-    ## 33 33      19931994      Florida Panthers           NA               13
-    ## 34 34      19981999   Nashville Predators           NA               18
-    ## 35 35      19992000         Winnipeg Jets           NA               52
-    ## 36 36      20002001 Columbus Blue Jackets           NA               29
-    ## 37 37      20002001        Minnesota Wild           NA               30
-    ## 38 38      20172018  Vegas Golden Knights           NA               54
-    ## 39 39      20212022        Seattle Kraken           NA               55
-    ##    teamAbbrev teamCommonName teamPlaceName
-    ## 1         MTL      Canadiens      Montréal
-    ## 2         MWN      Wanderers      Montreal
-    ## 3         SLE         Eagles     St. Louis
-    ## 4         HAM         Tigers      Hamilton
-    ## 5         TOR    Maple Leafs       Toronto
-    ## 6         BOS         Bruins        Boston
-    ## 7         MMR        Maroons      Montreal
-    ## 8         BRK      Americans      Brooklyn
-    ## 9         QUA        Quakers  Philadelphia
-    ## 10        NYR        Rangers      New York
-    ## 11        CHI     Blackhawks       Chicago
-    ## 12        DET      Red Wings       Detroit
-    ## 13        CLE         Barons     Cleveland
-    ## 14        LAK          Kings   Los Angeles
-    ## 15        DAL          Stars        Dallas
-    ## 16        PHI         Flyers  Philadelphia
-    ## 17        PIT       Penguins    Pittsburgh
-    ## 18        STL          Blues     St. Louis
-    ## 19        BUF         Sabres       Buffalo
-    ## 20        VAN        Canucks     Vancouver
-    ## 21        CGY         Flames       Calgary
-    ## 22        NYI      Islanders      New York
-    ## 23        NJD         Devils    New Jersey
-    ## 24        WSH       Capitals    Washington
-    ## 25        EDM         Oilers      Edmonton
-    ## 26        CAR     Hurricanes      Carolina
-    ## 27        COL      Avalanche      Colorado
-    ## 28        ARI        Coyotes       Arizona
-    ## 29        SJS         Sharks      San Jose
-    ## 30        OTT       Senators        Ottawa
-    ## 31        TBL      Lightning     Tampa Bay
-    ## 32        ANA          Ducks       Anaheim
-    ## 33        FLA       Panthers       Florida
-    ## 34        NSH      Predators     Nashville
-    ## 35        WPG           Jets      Winnipeg
-    ## 36        CBJ   Blue Jackets      Columbus
-    ## 37        MIN           Wild     Minnesota
-    ## 38        VGK Golden Knights         Vegas
-    ## 39        SEA         Kraken       Seattle
+    ##    id firstSeasonId              fullName lastSeasonId mostRecentTeamId teamAbbrev teamCommonName teamPlaceName
+    ## 1   1      19171918    Montréal Canadiens           NA                8        MTL      Canadiens      Montréal
+    ## 2   2      19171918    Montreal Wanderers     19171918               41        MWN      Wanderers      Montreal
+    ## 3   3      19171918      St. Louis Eagles     19341935               45        SLE         Eagles     St. Louis
+    ## 4   4      19191920       Hamilton Tigers     19241925               37        HAM         Tigers      Hamilton
+    ## 5   5      19171918   Toronto Maple Leafs           NA               10        TOR    Maple Leafs       Toronto
+    ## 6   6      19241925         Boston Bruins           NA                6        BOS         Bruins        Boston
+    ## 7   7      19241925      Montreal Maroons     19371938               43        MMR        Maroons      Montreal
+    ## 8   8      19251926    Brooklyn Americans     19411942               51        BRK      Americans      Brooklyn
+    ## 9   9      19251926  Philadelphia Quakers     19301931               39        QUA        Quakers  Philadelphia
+    ## 10 10      19261927      New York Rangers           NA                3        NYR        Rangers      New York
+    ## 11 11      19261927    Chicago Blackhawks           NA               16        CHI     Blackhawks       Chicago
+    ## 12 12      19261927     Detroit Red Wings           NA               17        DET      Red Wings       Detroit
+    ## 13 13      19671968      Cleveland Barons     19771978               49        CLE         Barons     Cleveland
+    ## 14 14      19671968     Los Angeles Kings           NA               26        LAK          Kings   Los Angeles
+    ## 15 15      19671968          Dallas Stars           NA               25        DAL          Stars        Dallas
+    ## 16 16      19671968   Philadelphia Flyers           NA                4        PHI         Flyers  Philadelphia
+    ## 17 17      19671968   Pittsburgh Penguins           NA                5        PIT       Penguins    Pittsburgh
+    ## 18 18      19671968       St. Louis Blues           NA               19        STL          Blues     St. Louis
+    ## 19 19      19701971        Buffalo Sabres           NA                7        BUF         Sabres       Buffalo
+    ## 20 20      19701971     Vancouver Canucks           NA               23        VAN        Canucks     Vancouver
+    ## 21 21      19721973        Calgary Flames           NA               20        CGY         Flames       Calgary
+    ## 22 22      19721973    New York Islanders           NA                2        NYI      Islanders      New York
+    ## 23 23      19741975     New Jersey Devils           NA                1        NJD         Devils    New Jersey
+    ## 24 24      19741975   Washington Capitals           NA               15        WSH       Capitals    Washington
+    ## 25 25      19791980       Edmonton Oilers           NA               22        EDM         Oilers      Edmonton
+    ## 26 26      19791980   Carolina Hurricanes           NA               12        CAR     Hurricanes      Carolina
+    ## 27 27      19791980    Colorado Avalanche           NA               21        COL      Avalanche      Colorado
+    ## 28 28      19791980       Arizona Coyotes           NA               53        ARI        Coyotes       Arizona
+    ## 29 29      19911992       San Jose Sharks           NA               28        SJS         Sharks      San Jose
+    ## 30 30      19921993       Ottawa Senators           NA                9        OTT       Senators        Ottawa
+    ## 31 31      19921993   Tampa Bay Lightning           NA               14        TBL      Lightning     Tampa Bay
+    ## 32 32      19931994         Anaheim Ducks           NA               24        ANA          Ducks       Anaheim
+    ## 33 33      19931994      Florida Panthers           NA               13        FLA       Panthers       Florida
+    ## 34 34      19981999   Nashville Predators           NA               18        NSH      Predators     Nashville
+    ## 35 35      19992000         Winnipeg Jets           NA               52        WPG           Jets      Winnipeg
+    ## 36 36      20002001 Columbus Blue Jackets           NA               29        CBJ   Blue Jackets      Columbus
+    ## 37 37      20002001        Minnesota Wild           NA               30        MIN           Wild     Minnesota
+    ## 38 38      20172018  Vegas Golden Knights           NA               54        VGK Golden Knights         Vegas
+    ## 39 39      20212022        Seattle Kraken           NA               55        SEA         Kraken       Seattle
     ## 
     ## $total
     ## [1] 39
@@ -298,30 +264,25 @@ head(wrap_fnc("record","franchise"))
 tbl_df(wrap_fnc("record","franchise","team-totals"))
 ```
 
-    ## # A tibble: 105 x 31
-    ##    data.id data.activeFran~ data.firstSeaso~ data.franchiseId
-    ##      <int>            <int>            <int>            <int>
-    ##  1       1                1         19821983               23
-    ##  2       2                1         19821983               23
-    ##  3       3                1         19721973               22
-    ##  4       4                1         19721973               22
-    ##  5       5                1         19261927               10
-    ##  6       6                1         19261927               10
-    ##  7       7                1         19671968               16
-    ##  8       8                1         19671968               16
-    ##  9       9                1         19671968               17
-    ## 10      10                1         19671968               17
-    ## # ... with 95 more rows, and 27 more variables: data.gameTypeId <int>,
-    ## #   data.gamesPlayed <int>, data.goalsAgainst <int>, data.goalsFor <int>,
-    ## #   data.homeLosses <int>, data.homeOvertimeLosses <int>,
-    ## #   data.homeTies <int>, data.homeWins <int>, data.lastSeasonId <int>,
-    ## #   data.losses <int>, data.overtimeLosses <int>,
-    ## #   data.penaltyMinutes <int>, data.pointPctg <dbl>, data.points <int>,
-    ## #   data.roadLosses <int>, data.roadOvertimeLosses <int>,
-    ## #   data.roadTies <int>, data.roadWins <int>, data.shootoutLosses <int>,
-    ## #   data.shootoutWins <int>, data.shutouts <int>, data.teamId <int>,
-    ## #   data.teamName <chr>, data.ties <int>, data.triCode <chr>,
-    ## #   data.wins <int>, total <int>
+    ## Warning: `tbl_df()` was deprecated in dplyr 1.0.0.
+    ## Please use `tibble::as_tibble()` instead.
+
+    ## # A tibble: 106 x 31
+    ##    data.id data.activeFranc~ data.firstSeaso~ data.franchiseId data.gameTypeId data.gamesPlayed data.goalsAgain~ data.goalsFor data.homeLosses data.homeOverti~ data.homeTies
+    ##      <int>             <int>            <int>            <int>           <int>            <int>            <int>         <int>           <int>            <int>         <int>
+    ##  1       1                 1         19821983               23               2             2993             8902          8792             525               85            96
+    ##  2       2                 1         19821983               23               3              257              634           697              53                0            NA
+    ##  3       3                 1         19721973               22               2             3788            11907         12045             678               84           170
+    ##  4       4                 1         19721973               22               3              313              910           989              53                1            NA
+    ##  5       5                 1         19261927               10               2             6560            20020         20041            1143               76           448
+    ##  6       6                 1         19261927               10               3              518             1447          1404             104                0             1
+    ##  7       7                 1         19671968               16               3              449             1332          1335              97                0            NA
+    ##  8       8                 1         19671968               16               2             4171            12255         13690             584               93           193
+    ##  9       9                 1         19671968               17               2             4171            14049         13874             683               60           205
+    ## 10      10                 1         19671968               17               3              391             1131          1190              85                0            NA
+    ## # ... with 96 more rows, and 20 more variables: data.homeWins <int>, data.lastSeasonId <int>, data.losses <int>, data.overtimeLosses <int>, data.penaltyMinutes <int>,
+    ## #   data.pointPctg <dbl>, data.points <int>, data.roadLosses <int>, data.roadOvertimeLosses <int>, data.roadTies <int>, data.roadWins <int>, data.shootoutLosses <int>,
+    ## #   data.shootoutWins <int>, data.shutouts <int>, data.teamId <int>, data.teamName <chr>, data.ties <int>, data.triCode <chr>, data.wins <int>, total <int>
 
 ## franchise-season-records by franchiseId=ID
 
@@ -331,36 +292,18 @@ tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
 ```
 
     ## # A tibble: 1 x 58
-    ##   data.id data.fewestGoals data.fewestGoal~ data.fewestGoal~
-    ##     <int>            <int>            <int> <chr>           
-    ## 1       3              150              177 1970-71 (78)    
-    ## # ... with 54 more variables: data.fewestGoalsSeasons <chr>,
-    ## #   data.fewestLosses <int>, data.fewestLossesSeasons <chr>,
-    ## #   data.fewestPoints <int>, data.fewestPointsSeasons <chr>,
-    ## #   data.fewestTies <int>, data.fewestTiesSeasons <chr>,
-    ## #   data.fewestWins <int>, data.fewestWinsSeasons <chr>,
-    ## #   data.franchiseId <int>, data.franchiseName <chr>,
-    ## #   data.homeLossStreak <int>, data.homeLossStreakDates <chr>,
-    ## #   data.homePointStreak <int>, data.homePointStreakDates <chr>,
-    ## #   data.homeWinStreak <int>, data.homeWinStreakDates <chr>,
-    ## #   data.homeWinlessStreak <int>, data.homeWinlessStreakDates <chr>,
-    ## #   data.lossStreak <int>, data.lossStreakDates <chr>,
-    ## #   data.mostGameGoals <int>, data.mostGameGoalsDates <chr>,
-    ## #   data.mostGoals <int>, data.mostGoalsAgainst <int>,
-    ## #   data.mostGoalsAgainstSeasons <chr>, data.mostGoalsSeasons <chr>,
-    ## #   data.mostLosses <int>, data.mostLossesSeasons <chr>,
-    ## #   data.mostPenaltyMinutes <int>, data.mostPenaltyMinutesSeasons <chr>,
-    ## #   data.mostPoints <int>, data.mostPointsSeasons <chr>,
-    ## #   data.mostShutouts <int>, data.mostShutoutsSeasons <chr>,
-    ## #   data.mostTies <int>, data.mostTiesSeasons <chr>, data.mostWins <int>,
-    ## #   data.mostWinsSeasons <chr>, data.pointStreak <int>,
-    ## #   data.pointStreakDates <chr>, data.roadLossStreak <int>,
-    ## #   data.roadLossStreakDates <chr>, data.roadPointStreak <int>,
-    ## #   data.roadPointStreakDates <chr>, data.roadWinStreak <int>,
-    ## #   data.roadWinStreakDates <chr>, data.roadWinlessStreak <int>,
-    ## #   data.roadWinlessStreakDates <chr>, data.winStreak <int>,
-    ## #   data.winStreakDates <chr>, data.winlessStreak <int>,
-    ## #   data.winlessStreakDates <chr>, total <int>
+    ##   data.id data.fewestGoals data.fewestGoalsA~ data.fewestGoalsAga~ data.fewestGoalsS~ data.fewestLoss~ data.fewestLosses~ data.fewestPoin~ data.fewestPoints~ data.fewestTies
+    ##     <int>            <int>              <int> <chr>                <chr>                         <int> <chr>                         <int> <chr>                        <int>
+    ## 1       3              150                177 1970-71 (78)         1954-55 (70)                     17 1971-72 (78)                     47 1965-66 (70)                     4
+    ## # ... with 48 more variables: data.fewestTiesSeasons <chr>, data.fewestWins <int>, data.fewestWinsSeasons <chr>, data.franchiseId <int>, data.franchiseName <chr>,
+    ## #   data.homeLossStreak <int>, data.homeLossStreakDates <chr>, data.homePointStreak <int>, data.homePointStreakDates <chr>, data.homeWinStreak <int>,
+    ## #   data.homeWinStreakDates <chr>, data.homeWinlessStreak <int>, data.homeWinlessStreakDates <chr>, data.lossStreak <int>, data.lossStreakDates <chr>,
+    ## #   data.mostGameGoals <int>, data.mostGameGoalsDates <chr>, data.mostGoals <int>, data.mostGoalsAgainst <int>, data.mostGoalsAgainstSeasons <chr>,
+    ## #   data.mostGoalsSeasons <chr>, data.mostLosses <int>, data.mostLossesSeasons <chr>, data.mostPenaltyMinutes <int>, data.mostPenaltyMinutesSeasons <chr>,
+    ## #   data.mostPoints <int>, data.mostPointsSeasons <chr>, data.mostShutouts <int>, data.mostShutoutsSeasons <chr>, data.mostTies <int>, data.mostTiesSeasons <chr>,
+    ## #   data.mostWins <int>, data.mostWinsSeasons <chr>, data.pointStreak <int>, data.pointStreakDates <chr>, data.roadLossStreak <int>, data.roadLossStreakDates <chr>,
+    ## #   data.roadPointStreak <int>, data.roadPointStreakDates <chr>, data.roadWinStreak <int>, data.roadWinStreakDates <chr>, data.roadWinlessStreak <int>,
+    ## #   data.roadWinlessStreakDates <chr>, data.winStreak <int>, data.winStreakDates <chr>, data.winlessStreak <int>, data.winlessStreakDates <chr>, total <int>
 
 ``` r
 # I choose Franchise full name="New York Rangers"
@@ -368,36 +311,18 @@ tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New York Ra
 ```
 
     ## # A tibble: 1 x 58
-    ##   data.id data.fewestGoals data.fewestGoal~ data.fewestGoal~
-    ##     <int>            <int>            <int> <chr>           
-    ## 1       3              150              177 1970-71 (78)    
-    ## # ... with 54 more variables: data.fewestGoalsSeasons <chr>,
-    ## #   data.fewestLosses <int>, data.fewestLossesSeasons <chr>,
-    ## #   data.fewestPoints <int>, data.fewestPointsSeasons <chr>,
-    ## #   data.fewestTies <int>, data.fewestTiesSeasons <chr>,
-    ## #   data.fewestWins <int>, data.fewestWinsSeasons <chr>,
-    ## #   data.franchiseId <int>, data.franchiseName <chr>,
-    ## #   data.homeLossStreak <int>, data.homeLossStreakDates <chr>,
-    ## #   data.homePointStreak <int>, data.homePointStreakDates <chr>,
-    ## #   data.homeWinStreak <int>, data.homeWinStreakDates <chr>,
-    ## #   data.homeWinlessStreak <int>, data.homeWinlessStreakDates <chr>,
-    ## #   data.lossStreak <int>, data.lossStreakDates <chr>,
-    ## #   data.mostGameGoals <int>, data.mostGameGoalsDates <chr>,
-    ## #   data.mostGoals <int>, data.mostGoalsAgainst <int>,
-    ## #   data.mostGoalsAgainstSeasons <chr>, data.mostGoalsSeasons <chr>,
-    ## #   data.mostLosses <int>, data.mostLossesSeasons <chr>,
-    ## #   data.mostPenaltyMinutes <int>, data.mostPenaltyMinutesSeasons <chr>,
-    ## #   data.mostPoints <int>, data.mostPointsSeasons <chr>,
-    ## #   data.mostShutouts <int>, data.mostShutoutsSeasons <chr>,
-    ## #   data.mostTies <int>, data.mostTiesSeasons <chr>, data.mostWins <int>,
-    ## #   data.mostWinsSeasons <chr>, data.pointStreak <int>,
-    ## #   data.pointStreakDates <chr>, data.roadLossStreak <int>,
-    ## #   data.roadLossStreakDates <chr>, data.roadPointStreak <int>,
-    ## #   data.roadPointStreakDates <chr>, data.roadWinStreak <int>,
-    ## #   data.roadWinStreakDates <chr>, data.roadWinlessStreak <int>,
-    ## #   data.roadWinlessStreakDates <chr>, data.winStreak <int>,
-    ## #   data.winStreakDates <chr>, data.winlessStreak <int>,
-    ## #   data.winlessStreakDates <chr>, total <int>
+    ##   data.id data.fewestGoals data.fewestGoalsA~ data.fewestGoalsAga~ data.fewestGoalsS~ data.fewestLoss~ data.fewestLosses~ data.fewestPoin~ data.fewestPoints~ data.fewestTies
+    ##     <int>            <int>              <int> <chr>                <chr>                         <int> <chr>                         <int> <chr>                        <int>
+    ## 1       3              150                177 1970-71 (78)         1954-55 (70)                     17 1971-72 (78)                     47 1965-66 (70)                     4
+    ## # ... with 48 more variables: data.fewestTiesSeasons <chr>, data.fewestWins <int>, data.fewestWinsSeasons <chr>, data.franchiseId <int>, data.franchiseName <chr>,
+    ## #   data.homeLossStreak <int>, data.homeLossStreakDates <chr>, data.homePointStreak <int>, data.homePointStreakDates <chr>, data.homeWinStreak <int>,
+    ## #   data.homeWinStreakDates <chr>, data.homeWinlessStreak <int>, data.homeWinlessStreakDates <chr>, data.lossStreak <int>, data.lossStreakDates <chr>,
+    ## #   data.mostGameGoals <int>, data.mostGameGoalsDates <chr>, data.mostGoals <int>, data.mostGoalsAgainst <int>, data.mostGoalsAgainstSeasons <chr>,
+    ## #   data.mostGoalsSeasons <chr>, data.mostLosses <int>, data.mostLossesSeasons <chr>, data.mostPenaltyMinutes <int>, data.mostPenaltyMinutesSeasons <chr>,
+    ## #   data.mostPoints <int>, data.mostPointsSeasons <chr>, data.mostShutouts <int>, data.mostShutoutsSeasons <chr>, data.mostTies <int>, data.mostTiesSeasons <chr>,
+    ## #   data.mostWins <int>, data.mostWinsSeasons <chr>, data.pointStreak <int>, data.pointStreakDates <chr>, data.roadLossStreak <int>, data.roadLossStreakDates <chr>,
+    ## #   data.roadPointStreak <int>, data.roadPointStreakDates <chr>, data.roadWinStreak <int>, data.roadWinStreakDates <chr>, data.roadWinlessStreak <int>,
+    ## #   data.roadWinlessStreakDates <chr>, data.winStreak <int>, data.winStreakDates <chr>, data.winlessStreak <int>, data.winlessStreakDates <chr>, total <int>
 
 ## franchise-goalie-records by franchiseId=ID
 
@@ -407,30 +332,22 @@ tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
 ```
 
     ## # A tibble: 40 x 30
-    ##    data.id data.activePlay~ data.firstName data.franchiseId
-    ##      <int> <lgl>            <chr>                     <int>
-    ##  1     304 FALSE            Richard                      20
-    ##  2     364 FALSE            Gary                         20
-    ##  3     367 FALSE            Sean                         20
-    ##  4    1224 FALSE            Frank                        20
-    ##  5     373 FALSE            Jacques                      20
-    ##  6     406 FALSE            Bob                          20
-    ##  7     423 FALSE            Troy                         20
-    ##  8     424 FALSE            John                         20
-    ##  9     500 FALSE            Bob                          20
-    ## 10     243 FALSE            Kirk                         20
-    ## # ... with 30 more rows, and 26 more variables: data.franchiseName <chr>,
-    ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.lastName <chr>,
-    ## #   data.losses <int>, data.mostGoalsAgainstDates <chr>,
-    ## #   data.mostGoalsAgainstOneGame <int>, data.mostSavesDates <chr>,
-    ## #   data.mostSavesOneGame <int>, data.mostShotsAgainstDates <chr>,
-    ## #   data.mostShotsAgainstOneGame <int>, data.mostShutoutsOneSeason <int>,
-    ## #   data.mostShutoutsSeasonIds <chr>, data.mostWinsOneSeason <int>,
-    ## #   data.mostWinsSeasonIds <chr>, data.overtimeLosses <int>,
-    ## #   data.playerId <int>, data.positionCode <chr>,
-    ## #   data.rookieGamesPlayed <int>, data.rookieShutouts <int>,
-    ## #   data.rookieWins <int>, data.seasons <int>, data.shutouts <int>,
-    ## #   data.ties <int>, data.wins <int>, total <int>
+    ##    data.id data.activePlayer data.firstName data.franchiseId data.franchiseN~ data.gameTypeId data.gamesPlayed data.lastName data.losses data.mostGoalsAga~ data.mostGoalsAg~
+    ##      <int> <lgl>             <chr>                     <int> <chr>                      <int>            <int> <chr>               <int> <chr>                          <int>
+    ##  1     304 FALSE             Richard                      20 Vancouver Canuc~               2              377 Brodeur               173 1981-10-17                        10
+    ##  2     364 FALSE             Gary                         20 Vancouver Canuc~               2               73 Bromley                27 1981-02-20, 1979-~                 9
+    ##  3     367 FALSE             Sean                         20 Vancouver Canuc~               2               16 Burke                   9 1998-01-28, 1998-~                 6
+    ##  4    1224 FALSE             Frank                        20 Vancouver Canuc~               2              102 Caprice                46 1985-11-08                        13
+    ##  5     373 FALSE             Jacques                      20 Vancouver Canuc~               2               10 Caron                   5 1973-12-20                         9
+    ##  6     406 FALSE             Bob                          20 Vancouver Canuc~               2               39 Essensa                12 2001-02-17, 2000-~                 5
+    ##  7     423 FALSE             Troy                         20 Vancouver Canuc~               2               72 Gamble                 29 1991-02-02                         9
+    ##  8     424 FALSE             John                         20 Vancouver Canuc~               2               56 Garrett                21 1984-11-29, 1984-~                12
+    ##  9     500 FALSE             Bob                          20 Vancouver Canuc~               2                6 Mason                   4 1991-03-03                         8
+    ## 10     243 FALSE             Kirk                         20 Vancouver Canuc~               2              516 McLean                228 1996-10-19                         9
+    ## # ... with 30 more rows, and 19 more variables: data.mostSavesDates <chr>, data.mostSavesOneGame <int>, data.mostShotsAgainstDates <chr>,
+    ## #   data.mostShotsAgainstOneGame <int>, data.mostShutoutsOneSeason <int>, data.mostShutoutsSeasonIds <chr>, data.mostWinsOneSeason <int>, data.mostWinsSeasonIds <chr>,
+    ## #   data.overtimeLosses <int>, data.playerId <int>, data.positionCode <chr>, data.rookieGamesPlayed <int>, data.rookieShutouts <int>, data.rookieWins <int>,
+    ## #   data.seasons <int>, data.shutouts <int>, data.ties <int>, data.wins <int>, total <int>
 
 ``` r
 # I choose Franchise full name="Vancouver Canucks"
@@ -438,30 +355,22 @@ tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Vancouver C
 ```
 
     ## # A tibble: 40 x 30
-    ##    data.id data.activePlay~ data.firstName data.franchiseId
-    ##      <int> <lgl>            <chr>                     <int>
-    ##  1     304 FALSE            Richard                      20
-    ##  2     364 FALSE            Gary                         20
-    ##  3     367 FALSE            Sean                         20
-    ##  4    1224 FALSE            Frank                        20
-    ##  5     373 FALSE            Jacques                      20
-    ##  6     406 FALSE            Bob                          20
-    ##  7     423 FALSE            Troy                         20
-    ##  8     424 FALSE            John                         20
-    ##  9     500 FALSE            Bob                          20
-    ## 10     243 FALSE            Kirk                         20
-    ## # ... with 30 more rows, and 26 more variables: data.franchiseName <chr>,
-    ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.lastName <chr>,
-    ## #   data.losses <int>, data.mostGoalsAgainstDates <chr>,
-    ## #   data.mostGoalsAgainstOneGame <int>, data.mostSavesDates <chr>,
-    ## #   data.mostSavesOneGame <int>, data.mostShotsAgainstDates <chr>,
-    ## #   data.mostShotsAgainstOneGame <int>, data.mostShutoutsOneSeason <int>,
-    ## #   data.mostShutoutsSeasonIds <chr>, data.mostWinsOneSeason <int>,
-    ## #   data.mostWinsSeasonIds <chr>, data.overtimeLosses <int>,
-    ## #   data.playerId <int>, data.positionCode <chr>,
-    ## #   data.rookieGamesPlayed <int>, data.rookieShutouts <int>,
-    ## #   data.rookieWins <int>, data.seasons <int>, data.shutouts <int>,
-    ## #   data.ties <int>, data.wins <int>, total <int>
+    ##    data.id data.activePlayer data.firstName data.franchiseId data.franchiseN~ data.gameTypeId data.gamesPlayed data.lastName data.losses data.mostGoalsAga~ data.mostGoalsAg~
+    ##      <int> <lgl>             <chr>                     <int> <chr>                      <int>            <int> <chr>               <int> <chr>                          <int>
+    ##  1     304 FALSE             Richard                      20 Vancouver Canuc~               2              377 Brodeur               173 1981-10-17                        10
+    ##  2     364 FALSE             Gary                         20 Vancouver Canuc~               2               73 Bromley                27 1981-02-20, 1979-~                 9
+    ##  3     367 FALSE             Sean                         20 Vancouver Canuc~               2               16 Burke                   9 1998-01-28, 1998-~                 6
+    ##  4    1224 FALSE             Frank                        20 Vancouver Canuc~               2              102 Caprice                46 1985-11-08                        13
+    ##  5     373 FALSE             Jacques                      20 Vancouver Canuc~               2               10 Caron                   5 1973-12-20                         9
+    ##  6     406 FALSE             Bob                          20 Vancouver Canuc~               2               39 Essensa                12 2001-02-17, 2000-~                 5
+    ##  7     423 FALSE             Troy                         20 Vancouver Canuc~               2               72 Gamble                 29 1991-02-02                         9
+    ##  8     424 FALSE             John                         20 Vancouver Canuc~               2               56 Garrett                21 1984-11-29, 1984-~                12
+    ##  9     500 FALSE             Bob                          20 Vancouver Canuc~               2                6 Mason                   4 1991-03-03                         8
+    ## 10     243 FALSE             Kirk                         20 Vancouver Canuc~               2              516 McLean                228 1996-10-19                         9
+    ## # ... with 30 more rows, and 19 more variables: data.mostSavesDates <chr>, data.mostSavesOneGame <int>, data.mostShotsAgainstDates <chr>,
+    ## #   data.mostShotsAgainstOneGame <int>, data.mostShutoutsOneSeason <int>, data.mostShutoutsSeasonIds <chr>, data.mostWinsOneSeason <int>, data.mostWinsSeasonIds <chr>,
+    ## #   data.overtimeLosses <int>, data.playerId <int>, data.positionCode <chr>, data.rookieGamesPlayed <int>, data.rookieShutouts <int>, data.rookieWins <int>,
+    ## #   data.seasons <int>, data.shutouts <int>, data.ties <int>, data.wins <int>, total <int>
 
 ## franchise-skater-records by franchiseId=ID
 
@@ -471,31 +380,23 @@ tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
 ```
 
     ## # A tibble: 364 x 32
-    ##    data.id data.activePlay~ data.assists data.firstName data.franchiseId
-    ##      <int> <lgl>                   <int> <chr>                     <int>
-    ##  1   18785 FALSE                       0 Joe                          30
-    ##  2   19225 FALSE                       0 Bobby                        30
-    ##  3   19982 FALSE                       1 Marc                         30
-    ##  4   22168 FALSE                       2 Steve                        30
-    ##  5   22256 FALSE                       1 Jim                          30
-    ##  6   22437 FALSE                       1 Dominic                      30
-    ##  7   22496 FALSE                       2 Stephen                      30
-    ##  8   22590 FALSE                       1 Francois                     30
-    ##  9   23076 FALSE                       3 Brad                         30
-    ## 10   23650 FALSE                       0 Brad                         30
-    ## # ... with 354 more rows, and 27 more variables: data.franchiseName <chr>,
-    ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.goals <int>,
-    ## #   data.lastName <chr>, data.mostAssistsGameDates <chr>,
-    ## #   data.mostAssistsOneGame <int>, data.mostAssistsOneSeason <int>,
-    ## #   data.mostAssistsSeasonIds <chr>, data.mostGoalsGameDates <chr>,
-    ## #   data.mostGoalsOneGame <int>, data.mostGoalsOneSeason <int>,
-    ## #   data.mostGoalsSeasonIds <chr>, data.mostPenaltyMinutesOneSeason <int>,
-    ## #   data.mostPenaltyMinutesSeasonIds <chr>,
-    ## #   data.mostPointsGameDates <chr>, data.mostPointsOneGame <int>,
-    ## #   data.mostPointsOneSeason <int>, data.mostPointsSeasonIds <chr>,
-    ## #   data.penaltyMinutes <int>, data.playerId <int>, data.points <int>,
-    ## #   data.positionCode <chr>, data.rookieGamesPlayed <int>,
-    ## #   data.rookiePoints <int>, data.seasons <int>, total <int>
+    ##    data.id data.activePlayer data.assists data.firstName data.franchiseId data.franchiseN~ data.gameTypeId data.gamesPlayed data.goals data.lastName data.mostAssistsGameDat~
+    ##      <int> <lgl>                    <int> <chr>                     <int> <chr>                      <int>            <int>      <int> <chr>         <chr>                   
+    ##  1   18785 FALSE                        0 Joe                          30 Ottawa Senators                2                6          0 Cirella       1995-10-07, 1995-10-13,~
+    ##  2   19225 FALSE                        0 Bobby                        30 Ottawa Senators                2                1          0 Dollas        1999-11-10, 1999-11-11  
+    ##  3   19982 FALSE                        1 Marc                         30 Ottawa Senators                2               10          0 Fortier       1992-10-08              
+    ##  4   22168 FALSE                        2 Steve                        30 Ottawa Senators                2                8          0 Konroyd       1994-03-23, 1994-03-30  
+    ##  5   22256 FALSE                        1 Jim                          30 Ottawa Senators                2                4          0 Kyte          1992-12-07              
+    ##  6   22437 FALSE                        1 Dominic                      30 Ottawa Senators                2                2          0 Lavoie        1992-11-15              
+    ##  7   22496 FALSE                        2 Stephen                      30 Ottawa Senators                2                9          0 Leach         1998-10-29, 1998-10-31  
+    ##  8   22590 FALSE                        1 Francois                     30 Ottawa Senators                2               23          0 Leroux        1994-03-20              
+    ##  9   23076 FALSE                        3 Brad                         30 Ottawa Senators                2               59          0 Marsh         1992-10-27, 1992-11-19,~
+    ## 10   23650 FALSE                        0 Brad                         30 Ottawa Senators                2               11          0 Miller        1992-10-12, 1992-10-14,~
+    ## # ... with 354 more rows, and 21 more variables: data.mostAssistsOneGame <int>, data.mostAssistsOneSeason <int>, data.mostAssistsSeasonIds <chr>,
+    ## #   data.mostGoalsGameDates <chr>, data.mostGoalsOneGame <int>, data.mostGoalsOneSeason <int>, data.mostGoalsSeasonIds <chr>, data.mostPenaltyMinutesOneSeason <int>,
+    ## #   data.mostPenaltyMinutesSeasonIds <chr>, data.mostPointsGameDates <chr>, data.mostPointsOneGame <int>, data.mostPointsOneSeason <int>, data.mostPointsSeasonIds <chr>,
+    ## #   data.penaltyMinutes <int>, data.playerId <int>, data.points <int>, data.positionCode <chr>, data.rookieGamesPlayed <int>, data.rookiePoints <int>, data.seasons <int>,
+    ## #   total <int>
 
 ``` r
 # I choose Franchise full name="Ottawa Senators"
@@ -503,31 +404,23 @@ tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","Ottawa Sena
 ```
 
     ## # A tibble: 364 x 32
-    ##    data.id data.activePlay~ data.assists data.firstName data.franchiseId
-    ##      <int> <lgl>                   <int> <chr>                     <int>
-    ##  1   18785 FALSE                       0 Joe                          30
-    ##  2   19225 FALSE                       0 Bobby                        30
-    ##  3   19982 FALSE                       1 Marc                         30
-    ##  4   22168 FALSE                       2 Steve                        30
-    ##  5   22256 FALSE                       1 Jim                          30
-    ##  6   22437 FALSE                       1 Dominic                      30
-    ##  7   22496 FALSE                       2 Stephen                      30
-    ##  8   22590 FALSE                       1 Francois                     30
-    ##  9   23076 FALSE                       3 Brad                         30
-    ## 10   23650 FALSE                       0 Brad                         30
-    ## # ... with 354 more rows, and 27 more variables: data.franchiseName <chr>,
-    ## #   data.gameTypeId <int>, data.gamesPlayed <int>, data.goals <int>,
-    ## #   data.lastName <chr>, data.mostAssistsGameDates <chr>,
-    ## #   data.mostAssistsOneGame <int>, data.mostAssistsOneSeason <int>,
-    ## #   data.mostAssistsSeasonIds <chr>, data.mostGoalsGameDates <chr>,
-    ## #   data.mostGoalsOneGame <int>, data.mostGoalsOneSeason <int>,
-    ## #   data.mostGoalsSeasonIds <chr>, data.mostPenaltyMinutesOneSeason <int>,
-    ## #   data.mostPenaltyMinutesSeasonIds <chr>,
-    ## #   data.mostPointsGameDates <chr>, data.mostPointsOneGame <int>,
-    ## #   data.mostPointsOneSeason <int>, data.mostPointsSeasonIds <chr>,
-    ## #   data.penaltyMinutes <int>, data.playerId <int>, data.points <int>,
-    ## #   data.positionCode <chr>, data.rookieGamesPlayed <int>,
-    ## #   data.rookiePoints <int>, data.seasons <int>, total <int>
+    ##    data.id data.activePlayer data.assists data.firstName data.franchiseId data.franchiseN~ data.gameTypeId data.gamesPlayed data.goals data.lastName data.mostAssistsGameDat~
+    ##      <int> <lgl>                    <int> <chr>                     <int> <chr>                      <int>            <int>      <int> <chr>         <chr>                   
+    ##  1   18785 FALSE                        0 Joe                          30 Ottawa Senators                2                6          0 Cirella       1995-10-07, 1995-10-13,~
+    ##  2   19225 FALSE                        0 Bobby                        30 Ottawa Senators                2                1          0 Dollas        1999-11-10, 1999-11-11  
+    ##  3   19982 FALSE                        1 Marc                         30 Ottawa Senators                2               10          0 Fortier       1992-10-08              
+    ##  4   22168 FALSE                        2 Steve                        30 Ottawa Senators                2                8          0 Konroyd       1994-03-23, 1994-03-30  
+    ##  5   22256 FALSE                        1 Jim                          30 Ottawa Senators                2                4          0 Kyte          1992-12-07              
+    ##  6   22437 FALSE                        1 Dominic                      30 Ottawa Senators                2                2          0 Lavoie        1992-11-15              
+    ##  7   22496 FALSE                        2 Stephen                      30 Ottawa Senators                2                9          0 Leach         1998-10-29, 1998-10-31  
+    ##  8   22590 FALSE                        1 Francois                     30 Ottawa Senators                2               23          0 Leroux        1994-03-20              
+    ##  9   23076 FALSE                        3 Brad                         30 Ottawa Senators                2               59          0 Marsh         1992-10-27, 1992-11-19,~
+    ## 10   23650 FALSE                        0 Brad                         30 Ottawa Senators                2               11          0 Miller        1992-10-12, 1992-10-14,~
+    ## # ... with 354 more rows, and 21 more variables: data.mostAssistsOneGame <int>, data.mostAssistsOneSeason <int>, data.mostAssistsSeasonIds <chr>,
+    ## #   data.mostGoalsGameDates <chr>, data.mostGoalsOneGame <int>, data.mostGoalsOneSeason <int>, data.mostGoalsSeasonIds <chr>, data.mostPenaltyMinutesOneSeason <int>,
+    ## #   data.mostPenaltyMinutesSeasonIds <chr>, data.mostPointsGameDates <chr>, data.mostPointsOneGame <int>, data.mostPointsOneSeason <int>, data.mostPointsSeasonIds <chr>,
+    ## #   data.penaltyMinutes <int>, data.playerId <int>, data.points <int>, data.positionCode <chr>, data.rookieGamesPlayed <int>, data.rookiePoints <int>, data.seasons <int>,
+    ## #   total <int>
 
 ## franchise-detail records by mostRecentTeamId=ID
 
@@ -537,22 +430,22 @@ tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
 ```
 
     ## # A tibble: 14 x 1
-    ##    value                                                                   
-    ##    <chr>                                                                   
-    ##  1 1                                                                       
-    ##  2 TRUE                                                                    
-    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (N~
-    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, ~
-    ##  5 1917-11-26T00:00:00                                                     
-    ##  6 https://www.nhl.com/canadiens/team/administration                       
-    ##  7 19171918                                                                
-    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 –~
-    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price~
-    ## 10 8                                                                       
-    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch B~
-    ## 12 MTL                                                                     
-    ## 13 Montréal Canadiens                                                      
-    ## 14 1
+    ##    value                                                                                                                                                                     
+    ##    <chr>                                                                                                                                                                     
+    ##  1 "1"                                                                                                                                                                       
+    ##  2 "TRUE"                                                                                                                                                                    
+    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (No Captain): 2014-15   Brian Gionta: 2010-11 – 2013-14   (No Captain): 2009-10   Saku Koivu: 1999-0~
+    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, 2017 – Feb. 23, 2021   Michel Therrien: Jan. 19, 2013 – Feb. 12, 2017   Randy Cunneyworth: Dec. 17~
+    ##  5 "1917-11-26T00:00:00"                                                                                                                                                     
+    ##  6 "https://www.nhl.com/canadiens/team/administration"                                                                                                                       
+    ##  7 "19171918"                                                                                                                                                                
+    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 – March 29, 2012   Bob Gainey: June 2, 2003 – Feb. 8, 2010   Andre Savard: Nov. 20, 2000 – June 2, ~
+    ##  9 "https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price.jpg"                                                                                             
+    ## 10 "8"                                                                                                                                                                       
+    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch Bouchard (1941-56)   4 – Jean Beliveau (1950-71)   5 – Bernie Geoffrion (1950-64)   5 – Guy Lapoint~
+    ## 12 "MTL"                                                                                                                                                                     
+    ## 13 "Montréal Canadiens"                                                                                                                                                      
+    ## 14 "1"
 
 ``` r
 # I choose Franchise full name="Montréal Canadiens"
@@ -560,22 +453,22 @@ tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","Montréal Cana
 ```
 
     ## # A tibble: 14 x 1
-    ##    value                                                                   
-    ##    <chr>                                                                   
-    ##  1 1                                                                       
-    ##  2 TRUE                                                                    
-    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (N~
-    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, ~
-    ##  5 1917-11-26T00:00:00                                                     
-    ##  6 https://www.nhl.com/canadiens/team/administration                       
-    ##  7 19171918                                                                
-    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 –~
-    ##  9 https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price~
-    ## 10 8                                                                       
-    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch B~
-    ## 12 MTL                                                                     
-    ## 13 Montréal Canadiens                                                      
-    ## 14 1
+    ##    value                                                                                                                                                                     
+    ##    <chr>                                                                                                                                                                     
+    ##  1 "1"                                                                                                                                                                       
+    ##  2 "TRUE"                                                                                                                                                                    
+    ##  3 "Shea Weber: 2018-19 – Present   Max Pacioretty: 2015-16 – 2017-18   (No Captain): 2014-15   Brian Gionta: 2010-11 – 2013-14   (No Captain): 2009-10   Saku Koivu: 1999-0~
+    ##  4 "Dominique Ducharme: Feb. 25, 2021 – Present   Claude Julien: Feb. 18, 2017 – Feb. 23, 2021   Michel Therrien: Jan. 19, 2013 – Feb. 12, 2017   Randy Cunneyworth: Dec. 17~
+    ##  5 "1917-11-26T00:00:00"                                                                                                                                                     
+    ##  6 "https://www.nhl.com/canadiens/team/administration"                                                                                                                       
+    ##  7 "19171918"                                                                                                                                                                
+    ##  8 "Marc Bergevin: May 2, 2012 – Present   Pierre Gauthier: Feb. 8, 2010 – March 29, 2012   Bob Gainey: June 2, 2003 – Feb. 8, 2010   Andre Savard: Nov. 20, 2000 – June 2, ~
+    ##  9 "https://records.nhl.com/site/asset/public/ext/hero/Team Pages/MTL/Price.jpg"                                                                                             
+    ## 10 "8"                                                                                                                                                                       
+    ## 11 "1 – Jacques Plante (1952-63)   2 – Doug Harvey (1947-61)   3 – Butch Bouchard (1941-56)   4 – Jean Beliveau (1950-71)   5 – Bernie Geoffrion (1950-64)   5 – Guy Lapoint~
+    ## 12 "MTL"                                                                                                                                                                     
+    ## 13 "Montréal Canadiens"                                                                                                                                                      
+    ## 14 "1"
 
 ## Team Stat modifier
 
@@ -584,122 +477,71 @@ tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","Montréal Cana
 tbl_df(wrap_fnc("stat","teams"))
 ```
 
-    ## # A tibble: 62 x 66
-    ##    copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
-    ##    <fct>        <int> <chr>      <chr>      <chr>            <chr>         
-    ##  1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ##  2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ##  3 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
-    ##  4 NHL and ~        2 New York ~ /api/v1/t~ NYI              Islanders     
-    ##  5 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
-    ##  6 NHL and ~        3 New York ~ /api/v1/t~ NYR              Rangers       
-    ##  7 NHL and ~        4 Philadelp~ /api/v1/t~ PHI              Flyers        
-    ##  8 NHL and ~        4 Philadelp~ /api/v1/t~ PHI              Flyers        
-    ##  9 NHL and ~        5 Pittsburg~ /api/v1/t~ PIT              Penguins      
-    ## 10 NHL and ~        5 Pittsburg~ /api/v1/t~ PIT              Penguins      
-    ## # ... with 52 more rows, and 60 more variables: teams.locationName <chr>,
-    ## #   teams.firstYearOfPlay <chr>, stat.gamesPlayed <int>, stat.wins <chr>,
-    ## #   stat.losses <chr>, stat.ot <chr>, stat.pts <chr>, stat.ptPctg <chr>,
-    ## #   stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>,
-    ## #   stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
-    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>,
-    ## #   stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>,
-    ## #   stat.shotsPerGame <chr>, stat.shotsAllowed <chr>,
-    ## #   stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>,
-    ## #   stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>,
-    ## #   stat.winOutshootOpp <chr>, stat.winOutshotByOpp <chr>,
-    ## #   stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>,
-    ## #   stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>,
-    ## #   stat.shootingPctg <dbl>, stat.savePctg <dbl>,
-    ## #   stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>,
-    ## #   stat.shootingPctRank <chr>, team.id <int>, team.name <chr>,
-    ## #   team.link <chr>, type.displayName <chr>, type.gameType.id <chr>,
-    ## #   type.gameType.description <chr>, type.gameType.postseason <lgl>,
-    ## #   teams.shortName <chr>, teams.officialSiteUrl <chr>,
-    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>,
-    ## #   teams.venue.link <chr>, teams.venue.city <chr>, teams.venue.id <int>,
-    ## #   teams.venue.timeZone.id <chr>, teams.venue.timeZone.offset <int>,
-    ## #   teams.venue.timeZone.tz <chr>, teams.division.id <int>,
-    ## #   teams.division.name <chr>, teams.division.link <chr>,
-    ## #   teams.conference.id <int>, teams.conference.name <chr>,
-    ## #   teams.conference.link <chr>, teams.franchise.franchiseId <int>,
-    ## #   teams.franchise.teamName <chr>, teams.franchise.link <chr>
+    ## # A tibble: 62 x 68
+    ##    copyright        teams.id teams.name  teams.link teams.abbreviat~ teams.teamName teams.locationN~ teams.firstYear~ stat.gamesPlayed stat.wins stat.losses stat.ot stat.pts
+    ##    <fct>               <int> <chr>       <chr>      <chr>            <chr>          <chr>            <chr>                       <int> <chr>     <chr>       <chr>   <chr>   
+    ##  1 NHL and the NHL~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           56 19        30          7       45      
+    ##  2 NHL and the NHL~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           NA 28th      29th        15th    29th    
+    ##  3 NHL and the NHL~        2 New York I~ /api/v1/t~ NYI              Islanders      New York         1972                           56 32        17          7       71      
+    ##  4 NHL and the NHL~        2 New York I~ /api/v1/t~ NYI              Islanders      New York         1972                           NA 12th      11th        11th    12th    
+    ##  5 NHL and the NHL~        3 New York R~ /api/v1/t~ NYR              Rangers        New York         1926                           56 27        23          6       60      
+    ##  6 NHL and the NHL~        3 New York R~ /api/v1/t~ NYR              Rangers        New York         1926                           NA 16th      18th        17th    17th    
+    ##  7 NHL and the NHL~        4 Philadelph~ /api/v1/t~ PHI              Flyers         Philadelphia     1967                           56 25        23          8       58      
+    ##  8 NHL and the NHL~        4 Philadelph~ /api/v1/t~ PHI              Flyers         Philadelphia     1967                           NA 18th      19th        8th     19th    
+    ##  9 NHL and the NHL~        5 Pittsburgh~ /api/v1/t~ PIT              Penguins       Pittsburgh       1967                           56 37        16          3       77      
+    ## 10 NHL and the NHL~        5 Pittsburgh~ /api/v1/t~ PIT              Penguins       Pittsburgh       1967                           NA 4th       7th         25th    7th     
+    ## # ... with 52 more rows, and 55 more variables: stat.ptPctg <chr>, stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>, stat.evGGARatio <chr>,
+    ## #   stat.powerPlayPercentage <chr>, stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>, stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>,
+    ## #   stat.shotsPerGame <chr>, stat.shotsAllowed <chr>, stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>, stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>,
+    ## #   stat.winOutshootOpp <chr>, stat.winOutshotByOpp <chr>, stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>, stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>,
+    ## #   stat.shootingPctg <dbl>, stat.savePctg <dbl>, stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>, stat.shootingPctRank <chr>, team.id <int>, team.name <chr>,
+    ## #   team.link <chr>, type.displayName <chr>, type.gameType.id <chr>, type.gameType.description <chr>, type.gameType.postseason <lgl>, teams.shortName <chr>,
+    ## #   teams.officialSiteUrl <chr>, teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>, teams.venue.link <chr>, teams.venue.city <chr>, teams.venue.id <int>,
+    ## #   teams.venue.timeZone.id <chr>, teams.venue.timeZone.offset <int>, teams.venue.timeZone.tz <chr>, teams.division.id <int>, teams.division.name <chr>,
+    ## #   teams.division.nameShort <chr>, teams.division.link <chr>, teams.division.abbreviation <chr>, teams.conference.id <int>, teams.conference.name <chr>,
+    ## #   teams.conference.link <chr>, teams.franchise.franchiseId <int>, teams.franchise.teamName <chr>, teams.franchise.link <chr>
 
 ``` r
 # I choose ID=1
 tbl_df(wrap_fnc("stat","teams",1))
 ```
 
-    ## # A tibble: 2 x 65
-    ##   copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
-    ##   <fct>        <int> <chr>      <chr>      <chr>            <chr>         
-    ## 1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ## 2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ## # ... with 59 more variables: teams.locationName <chr>,
-    ## #   teams.firstYearOfPlay <chr>, stat.gamesPlayed <int>, stat.wins <chr>,
-    ## #   stat.losses <chr>, stat.ot <chr>, stat.pts <chr>, stat.ptPctg <chr>,
-    ## #   stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>,
-    ## #   stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
-    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>,
-    ## #   stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>,
-    ## #   stat.shotsPerGame <chr>, stat.shotsAllowed <chr>,
-    ## #   stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>,
-    ## #   stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>,
-    ## #   stat.winOutshootOpp <chr>, stat.winOutshotByOpp <chr>,
-    ## #   stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>,
-    ## #   stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>,
-    ## #   stat.shootingPctg <dbl>, stat.savePctg <dbl>,
-    ## #   stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>,
-    ## #   stat.shootingPctRank <chr>, team.id <int>, team.name <chr>,
-    ## #   team.link <chr>, type.displayName <chr>, type.gameType.id <chr>,
-    ## #   type.gameType.description <chr>, type.gameType.postseason <lgl>,
-    ## #   teams.shortName <chr>, teams.officialSiteUrl <chr>,
-    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>,
-    ## #   teams.venue.link <chr>, teams.venue.city <chr>,
-    ## #   teams.venue.timeZone.id <chr>, teams.venue.timeZone.offset <int>,
-    ## #   teams.venue.timeZone.tz <chr>, teams.division.id <int>,
-    ## #   teams.division.name <chr>, teams.division.link <chr>,
-    ## #   teams.conference.id <int>, teams.conference.name <chr>,
-    ## #   teams.conference.link <chr>, teams.franchise.franchiseId <int>,
-    ## #   teams.franchise.teamName <chr>, teams.franchise.link <chr>
+    ## # A tibble: 2 x 67
+    ##   copyright         teams.id teams.name  teams.link teams.abbreviat~ teams.teamName teams.locationN~ teams.firstYear~ stat.gamesPlayed stat.wins stat.losses stat.ot stat.pts
+    ##   <fct>                <int> <chr>       <chr>      <chr>            <chr>          <chr>            <chr>                       <int> <chr>     <chr>       <chr>   <chr>   
+    ## 1 NHL and the NHL ~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           56 19        30          7       45      
+    ## 2 NHL and the NHL ~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           NA 28th      29th        15th    29th    
+    ## # ... with 54 more variables: stat.ptPctg <chr>, stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>, stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
+    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>, stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>, stat.shotsPerGame <chr>,
+    ## #   stat.shotsAllowed <chr>, stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>, stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>, stat.winOutshootOpp <chr>,
+    ## #   stat.winOutshotByOpp <chr>, stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>, stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>, stat.shootingPctg <dbl>,
+    ## #   stat.savePctg <dbl>, stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>, stat.shootingPctRank <chr>, team.id <int>, team.name <chr>, team.link <chr>,
+    ## #   type.displayName <chr>, type.gameType.id <chr>, type.gameType.description <chr>, type.gameType.postseason <lgl>, teams.shortName <chr>, teams.officialSiteUrl <chr>,
+    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>, teams.venue.link <chr>, teams.venue.city <chr>, teams.venue.timeZone.id <chr>,
+    ## #   teams.venue.timeZone.offset <int>, teams.venue.timeZone.tz <chr>, teams.division.id <int>, teams.division.name <chr>, teams.division.nameShort <chr>,
+    ## #   teams.division.link <chr>, teams.division.abbreviation <chr>, teams.conference.id <int>, teams.conference.name <chr>, teams.conference.link <chr>,
+    ## #   teams.franchise.franchiseId <int>, teams.franchise.teamName <chr>, teams.franchise.link <chr>
 
 ``` r
 # I choose Franchise full name="New Jersey Devils"
 tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
 ```
 
-    ## # A tibble: 2 x 65
-    ##   copyright teams.id teams.name teams.link teams.abbreviat~ teams.teamName
-    ##   <fct>        <int> <chr>      <chr>      <chr>            <chr>         
-    ## 1 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ## 2 NHL and ~        1 New Jerse~ /api/v1/t~ NJD              Devils        
-    ## # ... with 59 more variables: teams.locationName <chr>,
-    ## #   teams.firstYearOfPlay <chr>, stat.gamesPlayed <int>, stat.wins <chr>,
-    ## #   stat.losses <chr>, stat.ot <chr>, stat.pts <chr>, stat.ptPctg <chr>,
-    ## #   stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>,
-    ## #   stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
-    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>,
-    ## #   stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>,
-    ## #   stat.shotsPerGame <chr>, stat.shotsAllowed <chr>,
-    ## #   stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>,
-    ## #   stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>,
-    ## #   stat.winOutshootOpp <chr>, stat.winOutshotByOpp <chr>,
-    ## #   stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>,
-    ## #   stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>,
-    ## #   stat.shootingPctg <dbl>, stat.savePctg <dbl>,
-    ## #   stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>,
-    ## #   stat.shootingPctRank <chr>, team.id <int>, team.name <chr>,
-    ## #   team.link <chr>, type.displayName <chr>, type.gameType.id <chr>,
-    ## #   type.gameType.description <chr>, type.gameType.postseason <lgl>,
-    ## #   teams.shortName <chr>, teams.officialSiteUrl <chr>,
-    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>,
-    ## #   teams.venue.link <chr>, teams.venue.city <chr>,
-    ## #   teams.venue.timeZone.id <chr>, teams.venue.timeZone.offset <int>,
-    ## #   teams.venue.timeZone.tz <chr>, teams.division.id <int>,
-    ## #   teams.division.name <chr>, teams.division.link <chr>,
-    ## #   teams.conference.id <int>, teams.conference.name <chr>,
-    ## #   teams.conference.link <chr>, teams.franchise.franchiseId <int>,
-    ## #   teams.franchise.teamName <chr>, teams.franchise.link <chr>
+    ## # A tibble: 2 x 67
+    ##   copyright         teams.id teams.name  teams.link teams.abbreviat~ teams.teamName teams.locationN~ teams.firstYear~ stat.gamesPlayed stat.wins stat.losses stat.ot stat.pts
+    ##   <fct>                <int> <chr>       <chr>      <chr>            <chr>          <chr>            <chr>                       <int> <chr>     <chr>       <chr>   <chr>   
+    ## 1 NHL and the NHL ~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           56 19        30          7       45      
+    ## 2 NHL and the NHL ~        1 New Jersey~ /api/v1/t~ NJD              Devils         New Jersey       1982                           NA 28th      29th        15th    29th    
+    ## # ... with 54 more variables: stat.ptPctg <chr>, stat.goalsPerGame <chr>, stat.goalsAgainstPerGame <chr>, stat.evGGARatio <chr>, stat.powerPlayPercentage <chr>,
+    ## #   stat.powerPlayGoals <chr>, stat.powerPlayGoalsAgainst <chr>, stat.powerPlayOpportunities <chr>, stat.penaltyKillPercentage <chr>, stat.shotsPerGame <chr>,
+    ## #   stat.shotsAllowed <chr>, stat.winScoreFirst <chr>, stat.winOppScoreFirst <chr>, stat.winLeadFirstPer <chr>, stat.winLeadSecondPer <chr>, stat.winOutshootOpp <chr>,
+    ## #   stat.winOutshotByOpp <chr>, stat.faceOffsTaken <chr>, stat.faceOffsWon <chr>, stat.faceOffsLost <chr>, stat.faceOffWinPercentage <chr>, stat.shootingPctg <dbl>,
+    ## #   stat.savePctg <dbl>, stat.penaltyKillOpportunities <chr>, stat.savePctRank <chr>, stat.shootingPctRank <chr>, team.id <int>, team.name <chr>, team.link <chr>,
+    ## #   type.displayName <chr>, type.gameType.id <chr>, type.gameType.description <chr>, type.gameType.postseason <lgl>, teams.shortName <chr>, teams.officialSiteUrl <chr>,
+    ## #   teams.franchiseId <int>, teams.active <lgl>, teams.venue.name <chr>, teams.venue.link <chr>, teams.venue.city <chr>, teams.venue.timeZone.id <chr>,
+    ## #   teams.venue.timeZone.offset <int>, teams.venue.timeZone.tz <chr>, teams.division.id <int>, teams.division.name <chr>, teams.division.nameShort <chr>,
+    ## #   teams.division.link <chr>, teams.division.abbreviation <chr>, teams.conference.id <int>, teams.conference.name <chr>, teams.conference.link <chr>,
+    ## #   teams.franchise.franchiseId <int>, teams.franchise.teamName <chr>, teams.franchise.link <chr>
 
 # GETTING BASIC IDEAS
 
@@ -764,10 +606,10 @@ knitr::kable(most_goal, col.names = c("Position","Avg Goals"))
 
 | Position | Avg Goals |
 |:---------|----------:|
-| C        |  9.377076 |
+| C        |  9.382497 |
 | D        |  3.394374 |
-| L        |  8.760695 |
-| R        |  9.900029 |
+| L        |  8.751073 |
+| R        |  9.901238 |
 
 ``` r
 # Create a box-plot
@@ -791,10 +633,10 @@ knitr::kable(most_assi, col.names = c("Position","Assists"))
 
 | Position |  Assists |
 |:---------|---------:|
-| C        | 14.02480 |
+| C        | 14.03477 |
 | D        | 10.49834 |
-| L        | 10.90561 |
-| R        | 11.92826 |
+| L        | 10.88653 |
+| R        | 11.92686 |
 
 ``` r
 # Create a bar-plot
@@ -816,7 +658,7 @@ table(sk_go_join$data.positionCode)
 
     ## 
     ##    C    D    G    L    R 
-    ## 4275 5723 1078 3740 3471
+    ## 4285 5723 1078 3728 3473
 
 ``` r
 # Average Rookie games played
@@ -827,11 +669,11 @@ knitr::kable(rookie, col.names = c("Position","Rookie Game"))
 
 | Position | Rookie Game |
 |:---------|------------:|
-| C        |    32.48908 |
+| C        |    32.50886 |
 | D        |    31.27485 |
 | G        |    36.92053 |
-| L        |    30.35620 |
-| R        |    30.73169 |
+| L        |    30.32852 |
+| R        |    30.72996 |
 
 ``` r
 # 2 = regular Season, 3 = play offs
@@ -841,7 +683,7 @@ table(w$data.gameTypeId)
 
     ## 
     ##  2  3 
-    ## 57 48
+    ## 58 48
 
 # FACTORS WHICH INFLUENCED TEAM WINNING
 
@@ -983,12 +825,15 @@ knitr::kable(hw_ratio)
 | California Golden Seals |            84 |       116 |     0.7241379 |
 | Toronto Arenas          |            15 |        18 |     0.8333333 |
 | Toronto St. Patricks    |            73 |       109 |     0.6697248 |
+| Seattle Kraken          |            NA |         0 |            NA |
 
 ``` r
 # Look at the distribution of Home winning ratio
 r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
+
+    ## Warning: Removed 1 rows containing non-finite values (stat_bin).
 
 ![](README_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
