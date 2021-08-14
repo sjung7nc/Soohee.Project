@@ -1,5 +1,5 @@
 ---
-title: "Project I: NHL.API"
+title: "NHL.API.Vignette"
 author: "Soohee Jung"
 date: "6/11/2021"
 output:
@@ -11,16 +11,17 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# FUNCTIONS  
-## Required Packages  
+This document is a vignette to show how retrieve data from an [API](https://en.wikipedia.org/wiki/API). I will use the NHL API to pull data and then summaries and explore the data pulled.  
+# Required Packages  
+To use the functions for interacting with the NHL API, I used the following packages:  
 ```{r message=FALSE}
 library(httr)
-library(jsonlite)
-library(tidyverse)
-library(ggplot2)
+library(jsonlite) #needs for API interaction
+library(tidyverse) #tons of useful features for data manipulating and visualization
 library(xml2)
 ```
 
+# API interaction Functions 
 ## Record-API Functions  
 
 ```{r message=FALSE}
