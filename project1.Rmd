@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 This document is a vignette to show how retrieve data from an [API](https://en.wikipedia.org/wiki/API). I will use the NHL API to pull data and then summaries and explore the data pulled.  
 
 # Required Packages  
-To use the functions for interacting with the NHL API, I used the following packages:  
+To use the functions for interacting with the NHL API, I will use the following packages:  
 ```{r message=FALSE}
 library(httr)
 library(jsonlite) #needs for API interaction
@@ -23,23 +23,24 @@ library(xml2)
 ```
 
 # API interaction Functions  
-I defined the functions to interact with the [NHL Record API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md) and [NHL Stats API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).  
+I will define the functions to interact with the [NHL Record API](https://gitlab.com/dword4/nhlapi/-/blob/master/records-api.md) and [NHL Stats API](https://gitlab.com/dword4/nhlapi/-/blob/master/stats-api.md).  
 
-## Record-API Functions  
-
+## Setup to Convert value  
+Setting-up to make the function be able to convert a character value into a numeric value.  
 ```{r message=FALSE}
 # to mapping Franchise ids vs Full names vs Most recent team ID
 fr_url <- GET("https://records.nhl.com/site/api/franchise")
 fr_text <- content(fr_url, "text", encoding = "UTF-8")
 fr_list <- fromJSON(fr_text, flatten=TRUE)
 fr_list <- as.data.frame(fr_list)
+
 # Select Franchise ID, Full names, Most recent team ID
 fr_tbl <- tibble(fr_list$data.id, fr_list$data.fullName, fr_list$data.mostRecentTeamId)
-# print to see what it looks like
-head(fr_tbl)
+```
 
-# Creating Record API function
-# Function to get Endpoint URL
+## Creating Record-API function  
+```{r message=FALSE}
+# Creating functions to get each Endpoint URL
 rcd_url <- function(list,recd,type,id){
   if (missing(recd) & missing(type) & missing(id)){
     rcdurl <- paste0("https://records.nhl.com/site/api/",list)
@@ -65,7 +66,7 @@ rcd_url <- function(list,recd,type,id){
   return(rcdurl)
 }
 
-# Function to get data from the URL
+#Function to get data from the URL
 rcd_dt <- function(list,recd,...){
   if (missing(recd)){
     rcd_NHL <- GET(rcd_url(list))
@@ -101,9 +102,9 @@ rcd_dt <- function(list,recd,...){
 }
 ```
 
-## Stat-API function  
+## Creating Stat-API function  
 ```{r}
-# Function to get Endpoint URL
+#Creating functions to get each Endpoint URL
 stat_URL <- function(list,id){
   if (missing(id)){
     staturl <- paste0("https://statsapi.web.nhl.com/api/v1/",list,"?expand=team.stats")
@@ -132,7 +133,8 @@ stat_dt <- function(list,...){
 }
 ```
 
-## Wrapper function to call the functions above  
+## Wrapper function  
+Creating a wrapper function to call the functions above. To call the wrapper function, the first two arguments are requirement and users can add 3 other arguments depending on which endpoint they are interested. The first argument should be either *record* or *stat* and the second argument is either *franchise* or *team*.  
 ```{r}
 # choose record or stat and then put parameters to get data
 wrap_fnc <- function(fnc,list,...){
@@ -142,68 +144,14 @@ wrap_fnc <- function(fnc,list,...){
   else if (fnc=="stat"){
     return(stat_dt(list,...))
   }
-  else cat("Unavailable arguments")
+  else cat("Error: Unavailable arguments!")
 }
 ```
 
-# CONTINGENCY TABLES  
-## Franchise Records  
-```{r}
-str(wrap_fnc("record","franchise"))
-head(wrap_fnc("record","franchise"))
-```
-
-## Franchise-team-totals Records  
-```{r}
-tbl_df(wrap_fnc("record","franchise","team-totals"))
-```
-
-## franchise-season-records by franchiseId=ID  
-```{r}
-# I choose ID=10
-tbl_df(wrap_fnc("record","franchise","season-records","franchiseId",10))
-# I choose Franchise full name="New York Rangers"
-tbl_df(wrap_fnc("record","franchise","season-records","franchiseId","New York Rangers"))
-```
-
-## franchise-goalie-records by franchiseId=ID  
-```{r}
-# I choose ID=20
-tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId",20))
-# I choose Franchise full name="Vancouver Canucks"
-tbl_df(wrap_fnc("record","franchise","goalie-records","franchiseId","Vancouver Canucks"))
-```
-
-## franchise-skater-records by franchiseId=ID  
-```{r}
-# I choose ID=30
-tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId",30))
-# I choose Franchise full name="Ottawa Senators"
-tbl_df(wrap_fnc("record","franchise","skater-records","franchiseId","Ottawa Senators"))
-```
-
-## franchise-detail records by mostRecentTeamId=ID  
-```{r}
-# I choose ID=8
-tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId",8))
-# I choose Franchise full name="Montréal Canadiens"
-tbl_df(wrap_fnc("record","franchise","detail","mostRecentTeamId","Montréal Canadiens"))
-```
-
-## Team Stat modifier  
-```{r}
-# I choose all ID
-tbl_df(wrap_fnc("stat","teams"))
-# I choose ID=1
-tbl_df(wrap_fnc("stat","teams",1))
-# I choose Franchise full name="New Jersey Devils"
-tbl_df(wrap_fnc("stat","teams","New Jersey Devils"))
-```
-
-# GETTING BASIC IDEAS  
+# Data Exploration  
 ## Choose two franchises to compare with  
+Creating a Winning percentage column and choose two comparable franchise IDs.  
 ```{r}
-# create Winning percentage column and choose 2 comparable franchise IDs
 a <- wrap_fnc("record","franchise","team-totals") %>% 
   filter(data.gameTypeId==2 & data.gamesPlayed >2000) %>% 
   mutate(win_chance=data.wins/data.gamesPlayed) %>% 
@@ -211,97 +159,83 @@ a <- wrap_fnc("record","franchise","team-totals") %>%
 knitr::kable(a, col.names=gsub("data.","",names(a)), align="cccc",  caption="Winning percentage by Franchise ID")
 ```
 
-ID=1 had higher chance of win(51.2%) than ID=20 had(41.8%). Let's find the factors which affected these different results!    
+ID=1 had higher chance of winning(51.2%) than ID=20 had(41.8%). I want to find which factors affected different winning rates within these two franchises!    
 
 ## Goals by skater position  
 ```{r}
 # Full-join skater and goalie records 
 sk_go_join=full_join(wrap_fnc("record","franchise","goalie-records"),wrap_fnc("record","franchise","skater-records"))
 # Filter joined data to choose skaters
-skaters <- sk_go_join %>% filter(data.positionCode != "G")
-most_goal <- skaters %>% group_by(data.positionCode) %>% summarise(Goals=mean(data.mostGoalsOneSeason))
-knitr::kable(most_goal, col.names = c("Position","Avg Goals"))
-# Create a box-plot
-p <- ggplot(skaters,aes(x=data.positionCode,y=data.mostGoalsOneSeason,fill=data.positionCode))
-p+geom_boxplot()+scale_fill_brewer(palette = "Set2")+labs(x="Position",y="Goals",fill="Position",title="< Most Goals by skater Position >")
+fr1 <- wrap_fnc("record","franchise","skater-records","franchiseId",1)
+fr20 <- wrap_fnc("record","franchise","skater-records","franchiseId",20)
+Fr1Fr20 <- full_join(fr1,fr20)
+knitr::kable(table(Fr1Fr20$data.franchiseId,Fr1Fr20$data.positionCode))
 ```
 
-Right wingers scored most goals and then Center skaters did. Ok, I guessed center skaters scored most but their numbers are close so not a big surprise. That makes sense!  
+There are more players in franchise Id=1!  
+
+```{r}
+avg_goal1 <- fr1 %>% group_by(data.positionCode) %>% summarise(Goals=mean(data.goals))
+avg_goal20 <- fr20 %>% group_by(data.positionCode) %>% summarise(Goals=mean(data.goals))
+
+knitr::kable(avg_goal1, col.names = c("Position","Avg Goals"), caption = "Franchise Id=1 Average goals")
+knitr::kable(avg_goal20, col.names = c("Position","Avg Goals"), caption = "Franchise Id=20 Average goals")
+# Create a box-plot
+ggplot(Fr1Fr20,aes(x=data.positionCode,y=data.goals,col=as.factor(data.franchiseId)))+geom_boxplot(alpha=0.5)+labs(x="Positions",y="Goals",col="Franchise Id",title="< Goals by position in franchise Id 1 and 20 >")
+```
+
+In the first contingency table, we can see there are more players in each position in the franchise Id=1. The summary tables show us each position in the franchise Id=1 scored more than Id=20 players did and in both franchises the wingers scored more than the center players did. Interesting! I have been thinking the center players score the most. Anyway, the amount goals and the winning rates have a positive correlation as we expected.  
 
 ## Assists by skater position  
 ```{r}
 # skater's average assists by position
-most_assi <- skaters %>% group_by(data.positionCode) %>% summarise(assist=mean(data.mostAssistsOneSeason))
-knitr::kable(most_assi, col.names = c("Position","Assists"))
+avgAssists <- Fr1Fr20 %>% group_by(data.franchiseId,data.positionCode) %>% summarise(avgAssist=mean(data.assists)) 
+knitr::kable(avgAssists, col.names = c("Franchise Id","Position","Assists"),caption = "Average assists by position")
 # Create a bar-plot
-b <- ggplot(most_assi,aes(x=data.positionCode, y=assist, fill=data.positionCode))
-b+geom_col()+scale_fill_brewer(palette="PRGn")+labs(x="Position",y="Assists",fill="Position",title="< Average Assists by skater Position >")
+ggplot(avgAssists, aes(x=data.positionCode,y=avgAssist,col=as.factor(data.franchiseId)))+geom_point(size=4)+scale_color_manual(values = c("red","blue")) +
+  labs(x="Positions",y="Average assists",col="Franchise Id",titla="< Average assists by position >")
 ```
 
-Center players assisted most and then right wingers did. I guessed both wingers assisted most but the data tells different story. Interesting!!  
-
-## Some Numerical summaries  
-```{r}
-# How many players by position
-table(sk_go_join$data.positionCode)
-# Average Rookie games played
-rookie <- sk_go_join %>% group_by(data.positionCode) %>% 
-  summarise(rookieGames=mean(data.rookieGamesPlayed, na.rm=TRUE))
-knitr::kable(rookie, col.names = c("Position","Rookie Game"))
-# 2 = regular Season, 3 = play offs
-w<-wrap_fnc("record","franchise","team-totals")
-table(w$data.gameTypeId)
-```
-
-# FACTORS WHICH INFLUENCED TEAM WINNING  
-## Do skater assists affect winning?  
-```{r}
-# Filter datasets to choose 2 teams with ID=1 and ID=20
-two_ID <- skaters %>% filter(data.franchiseId==1 | data.franchiseId==20)
-two_ID$data.franchiseId <- as.character(two_ID$data.franchiseId)
-# Summarise skaters assists records
-avg_assi <- two_ID %>% group_by(data.franchiseId) %>% summarise(avgassi=mean(data.assists))
-knitr::kable(avg_assi,col.names = c("Franchise ID","Avg Assists"))
-```
-
-The franchise ID=1 had more average assists and higher winning chance than ID=20 did.  
+The summary tables show us the players in the franchise Id=1 assisted more than the the players in franchise Id=20 did in average. The center players assisted the most in both franchises. Do you remember the results we got above? The amount of goals, assists and winning rates all are positively related.  
 
 ```{r}
 # Create a scatter-plot to see the relationship between assists and goals
-ag <- ggplot(two_ID, aes(x=data.assists, y=data.goals))
-ag + geom_jitter(aes(color=data.franchiseId)) +
-  labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists vs Goals >")
+ag <- ggplot(Fr1Fr20, aes(x=data.assists, y=data.goals))
+ag + geom_point(aes(color=as.factor(data.franchiseId)), alpha=0.7) +
+  labs(x="Assists",y="Goals",color="Franchise ID",title="< Assists & Goals >")
 ```
 
-This graph also tells us the relationship between assists and goals is linear. So, we can say **more assists brought more goals and higher chance of winning!**  
+Here is an additional visual output to support the idea. It shows the goals and assists have a positive linear relationship. Now I am pretty confident to say that **more assists brought more goals and higher chance of winning!**  
 
-## How center position skater's penalty time affect goal?  
+## Does the skater's penalty time affect winning?  
+### By position  
 ```{r}
-# Summarise center position skater's penalty minutes records
-center <- two_ID %>% filter(data.positionCode== "C")
-center_pt <- ggplot(center, aes(x=data.penaltyMinutes, y=data.goals))
-center_pt + geom_line(aes(color=data.franchiseId)) + geom_smooth() +
-  labs(x="Penalty Minutes", y="Goals",color="Franchise ID", title="< center skater Penalty minute and Goals >")
+knitr::kable(Fr1Fr20 %>% group_by(data.franchiseId,data.positionCode) %>% summarise(avgPenalty=mean(data.penaltyMinutes)), caption = "penaly time by position")
 ```
 
-The center position skaters scored more goals as they had more penalty minutes. What?? Interesting!  
+These numbers are interesting!! I have guessed that more penalty time drives higher chance of losing games but these numbers are not talking that way. I want to pick more teams and compare with one another to make sure this idea.  
+From the winning rate table on top of the page, I would choose Id=14 with winning rate=42% and Id=16 with winning rate=50%.  
 
+### Comparing more teams
 ```{r message=FALSE, warning=FALSE}
-# Penalty minutes vs Goals(Wins)
-t_total <- wrap_fnc("record","franchise","team-totals")
-w <- ggplot(t_total,aes(data.penaltyMinutes,data.wins))
-g <- ggplot(t_total,aes(data.penaltyMinutes,data.goalsFor))
-g+geom_quantile()+labs(x="Penalty Minutes", y="Goals", title="< Penalty minutes and Goals >")
-w+geom_quantile()+labs(x="Penalty Minutes", y="Wins", title="< Penalty minutes and Wins >")
+fr14 <- wrap_fnc("record","franchise","skater-records","franchiseId",14)
+fr16 <- wrap_fnc("record","franchise","skater-records","franchiseId",16)
+Fr20Fr14 <- full_join(fr20,fr14)
+Fr20Fr14$w.rate <- "LOW" 
+Fr1Fr16 <- full_join(fr1,fr16)
+Fr1Fr16$w.rate <- "HIGH"
+fourJoin <- full_join(Fr20Fr14,Fr1Fr16)
+knitr::kable(fourJoin %>% group_by(w.rate,data.franchiseId) %>% summarise(avgPenalty=mean(data.penaltyMinutes)), caption = "penalty time and winning rate")
 ```
   
-What a surprising result!! I thought the penalty minutes would affects goals and winnings in negative ways, but the graphs tell us totally opposite story.  
+My expectation was totally wrong. All the number outputs show us the penalty time has no affect to the winning rate.  
 
 ## Is playing at Home really an advantage?  
 ```{r}
 # Create Home game winning ratio by homewins/wins
-hw_ratio <- t_total %>% filter(data.gameTypeId==2) %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
-  select(data.teamName,data.homeWins, data.wins, HomeWin.ratio)
+teamTotal <- tbl_df(wrap_fnc("record","franchise","team-totals"))
+hw_ratio <- teamTotal %>% filter(data.gameTypeId==2 & data.homeWins!="NA") %>% mutate(HomeWin.ratio=data.homeWins/data.wins) %>%
+  select(data.teamName, HomeWin.ratio) %>% arrange(HomeWin.ratio)
 # Look at the output numbers in a table
 knitr::kable(hw_ratio)
 # Look at the distribution of Home winning ratio
@@ -309,7 +243,8 @@ r <- ggplot(hw_ratio,aes(x=HomeWin.ratio))
 r+geom_histogram(bins=70,fill="purple")+labs(x="Home wins Ratio", title="< Home Game Winning Chance >")
 ```
 
-All teams had over 50% of winning chance when they played at home. Playing at Home really an advantage!!  
+All the teams had over 50% of winning chance when they played at home field. Playing at Home really an advantage!!  
 
-According to all above **More assists**, **More penalty minutes** and **Home game** helped teams win the games.
+# Conclusion  
+According to all the results above, **More assists**, **More goals** and **Home game** helped teams win the games but the amount of **penalty time** did not affect the winning or losing games.
 
